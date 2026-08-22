@@ -1,0 +1,3 @@
+type KpiCardProps = { label: string; value: string; detail: string; tone: 'blue' | 'amber' | 'green' | 'silver' }
+
+export function KpiCard({ label, value, detail, tone }: KpiCardProps) { const border = { blue: 'border-t-[var(--royal-blue)]', amber: 'border-t-[#b48737]', green: 'border-t-[#4a8a68]', silver: 'border-t-[#84909b]' }; return <article className={`border border-[var(--silver)] border-t-4 ${border[tone]} bg-white p-5 shadow-[0_2px_8px_rgba(20,32,48,0.04)]`}><p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">{label}</p><p className="mt-3 text-3xl font-semibold text-[var(--royal-blue)]">{value}</p><p className="mt-2 text-xs text-[var(--muted)]">{detail}</p></article> }

@@ -1,0 +1,14 @@
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { getVisitorRequest, type VisitorRequestDetail } from '../services/apiClient'
+
+export function VisitorRequestDetailPage() {
+  const { id = '' } = useParams()
+  const [request, setRequest] = useState<VisitorRequestDetail | null>(null)
+  const [error, setError] = useState('')
+  useEffect(() => { getVisitorRequest(id).then(setRequest).catch(() => setError('Request details could not be loaded.')) }, [id])
+  if (error) return <p role="alert" className="border border-[#e1b5b5] bg-[#fff4f4] p-4 text-sm text-[#9b2c2c]">{error}</p>
+  if (!request) return <p className="text-sm text-[var(--muted)]">Loading request...</p>
+  return <div className="space-y-6"><Link to="/visitor-requests" className="text-sm font-semibold text-[var(--royal-blue)]">&lt;- Visitor requests</Link><header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Request detail</p><h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">{request.requestNumber}</h1><p className="mt-2 text-sm text-[var(--muted)]">{request.visitor.fullName} · {request.currentStatus}</p></div></header><section className="grid gap-6 lg:grid-cols-2"><Info title="Visitor"><p>{request.visitor.fullName}</p><p>{request.visitor.companyName} · {request.visitor.designation}</p><p>{request.visitor.country} · {request.visitor.citizenship}</p><p>{request.visitor.idType} ending {request.visitor.idLast4}</p></Info><Info title="Visit"><p>{request.visitingCompany} · {request.visitingSite}</p><p>{request.visitPurposeType}</p><p>{request.purpose}</p></Info><Info title="Visit days"><div className="space-y-2">{request.visitDays.map((day) => <p key={day.id}>{day.visitDate} · {day.status}{day.expectedArrivalTime ? ` · ${day.expectedArrivalTime}` : ''}</p>)}</div></Info><Info title="Assets"><div className="space-y-2">{request.assets.length ? request.assets.map((asset) => <p key={asset.id}>{asset.assetType} · {asset.verificationStatus}</p>) : <p>No declared assets.</p>}</div></Info></section><Info title="Audit history"><div className="space-y-3">{request.auditHistory.length ? request.auditHistory.map((entry) => <p key={entry.id}><strong>{entry.action}</strong> · {entry.details} <span className="text-[var(--muted)]">{new Date(entry.createdAt).toLocaleString()}</span></p>) : <p>No audit entries.</p>}</div></Info></div>
+}
+function Info({ title, children }: { title: string; children: ReactNode }) { return <section className="border border-[var(--silver)] bg-white p-6"><h2 className="display text-xl font-bold text-[var(--royal-blue)]">{title}</h2><div className="mt-4 space-y-2 text-sm text-[var(--ink)]">{children}</div></section> }
