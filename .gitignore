@@ -2,6 +2,10 @@ logs
 *.log
 node_modules/
 dist/
+bin/
+obj/
+TestResults/
+coverage/
 *.local
 .vscode/*
 !.vscode/extensions.json
@@ -10,12 +14,14 @@ dist/
 *.suo
 *.sw?
 
+# Environment files - never commit real values (.env.example is allowed)
 .env
+.env.*
 *.env
 !.env.example
+
 appsettings.*.local.json
 secrets.json
 
-client/dist/
-server/bin/
-server/obj/
+# Vercel
+.vercel/

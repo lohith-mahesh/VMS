@@ -1,0 +1,27 @@
+# Render Blueprint - one-click deploy for the RRVMS API.
+# Docs: https://render.com/docs/blueprint-spec
+# After connecting your repo, Render reads this file and pre-fills the service.
+# You must still provide values marked "sync: false" (Render prompts you for them).
+
+services:
+  - type: web
+    name: rrvms-api
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Supabase DIRECT connection URL (db.<project-ref>.supabase.co:5432),
+      # not the connection pooler (pgbouncer breaks EF migrations).
+      - key: DATABASE_URL
+        sync: false
+      # Comma-separated frontend origins allowed by CORS,
+      # e.g. https://rrvms.vercel.app
+      - key: FRONTEND_URL
+        sync: false
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      # PORT is injected by Render automatically; no need to set it.

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import rrMonogram from '../assets/RR-monogram.svg'
+import { RRLogo } from '../components/common/RRLogo'
 
 export function BaseLayout() {
   return (
@@ -7,7 +7,7 @@ export function BaseLayout() {
       <header className="border-b border-[var(--silver)] bg-[var(--white)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <NavLink to="/" className="flex items-center gap-3 text-[var(--royal-blue)]">
-            <img src={rrMonogram} alt="Rolls-Royce" className="h-9 w-8 object-contain" />
+            <RRLogo size="small" ariaLabel="RRVMS" />
             <span className="display text-xl font-bold tracking-wide">Visitor Management</span>
           </NavLink>
           <div className="text-right text-xs uppercase tracking-[0.18em] text-[var(--muted)]">

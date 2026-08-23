@@ -6,6 +6,7 @@ namespace RRVMS.Api.Controllers;
 
 [ApiController]
 [Route("api/visitor-requests")]
+[Route("api/requests")]
 public sealed class VisitorRequestsController(IVisitorRequestService service, ICurrentUserService currentUserService) : ControllerBase
 {
     [HttpGet]
@@ -35,5 +36,20 @@ public sealed class VisitorRequestsController(IVisitorRequestService service, IC
         {
             return BadRequest(new { error = exception.Message });
         }
+    }
+
+    [HttpPost("{id:guid}/actions")]
+    public async Task<IActionResult> Action(Guid id, WorkflowActionDto input, CancellationToken cancellationToken)
+    {
+        if (!currentUserService.IsAuthenticated) return Unauthorized();
+        try
+        {
+            var result = await service.ExecuteActionAsync(id, input, currentUserService.UserId, currentUserService.Role, cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException exception) { return NotFound(new { error = exception.Message }); }
+        catch (UnauthorizedAccessException exception) { return StatusCode(StatusCodes.Status403Forbidden, new { error = exception.Message }); }
+        catch (ArgumentException exception) { return BadRequest(new { error = exception.Message }); }
+        catch (InvalidOperationException exception) { return Conflict(new { error = exception.Message }); }
     }
 }

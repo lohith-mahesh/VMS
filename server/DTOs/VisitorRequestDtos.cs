@@ -4,6 +4,7 @@ namespace RRVMS.Api.DTOs;
 
 public sealed class CreateVisitorRequestDto
 {
+    [Required] public string VisitorType { get; init; } = "External";
     [Required, StringLength(160)] public string FullName { get; init; } = string.Empty;
     [Required, StringLength(160)] public string CompanyName { get; init; } = string.Empty;
     [Required, StringLength(80)] public string Citizenship { get; init; } = string.Empty;

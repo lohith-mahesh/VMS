@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { mockUsers, type MockUser } from '../auth/roles'
 import { Button } from '../components/common/Button'
-import rrMonogram from '../assets/RR-monogram.svg'
+import { RRLogo } from '../components/common/RRLogo'
 
 export function LoginPage() {
   const [showUsers, setShowUsers] = useState(false)
@@ -21,7 +21,7 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-[var(--surface)] px-6 py-12">
       <div className="w-full max-w-md border border-[var(--silver)] bg-white shadow-[0_4px_18px_rgba(20,32,48,0.08)]">
         <div className="border-b border-[var(--silver)] bg-[var(--royal-blue)] px-8 py-7 text-white">
-          <img src={rrMonogram} alt="Rolls-Royce" className="h-16 w-14 object-contain" />
+          <RRLogo size="large" ariaLabel="RRVMS" />
           <h1 className="display mt-4 text-3xl font-bold">Visitor Management</h1>
           <p className="mt-2 text-sm text-[#d9e0eb]">A secure welcome starts here.</p>
         </div>
