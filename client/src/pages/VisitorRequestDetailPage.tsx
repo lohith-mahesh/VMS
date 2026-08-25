@@ -1,15 +1,45 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
 import { executeVisitorRequestAction, getVisitorRequest, type VisitorRequestDetail } from '../services/apiClient'
 import { userFacingApiError } from '../utils/logger'
-import { useAuth } from '../auth/useAuth'
 
 export function VisitorRequestDetailPage() {
-  const { id = '' } = useParams(); const { user } = useAuth(); const [request, setRequest] = useState<VisitorRequestDetail | null>(null); const [error, setError] = useState(''); const [acting, setActing] = useState(false)
-  const load = useCallback(async () => { try { setRequest(await getVisitorRequest(id)); setError('') } catch (reason) { setError(userFacingApiError(reason, 'Request details could not be loaded.')) } }, [id]); useEffect(() => { void load() }, [load])
-  const action = async (name: string, values: Record<string, string> = {}) => { setActing(true); try { setRequest(await executeVisitorRequestAction(id, { action: name, ...values })) } catch (reason) { setError(userFacingApiError(reason, 'That workflow action could not be completed.')) } finally { setActing(false) } }
-  if (error) return <p role="alert" className="border border-[#e1b5b5] bg-[#fff4f4] p-4 text-sm text-[#9b2c2c]">{error}</p>; if (!request) return <p className="text-sm text-[var(--muted)]">Loading request...</p>
-  return <div className="space-y-6"><Link to="/visitor-requests" className="text-sm font-semibold text-[var(--royal-blue)]">&lt;- Requests</Link><header><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Request detail</p><h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">{request.requestNumber}</h1><p className="mt-2 text-sm text-[var(--muted)]">{request.visitor.fullName || 'Visitor form pending'} · {request.currentStatus}</p></header><Actions role={user?.role ?? ''} status={request.currentStatus} acting={acting} onAction={action} /><div className="grid gap-6 lg:grid-cols-2"><Info title="Visitor"><p>{request.visitor.fullName || 'Awaiting individual visitor form'}</p><p>{request.visitor.companyName} {request.visitor.designation && `· ${request.visitor.designation}`}</p><p>{request.visitor.country} {request.visitor.citizenship && `· ${request.visitor.citizenship}`}</p>{request.visitor.idLast4 && <p>{request.visitor.idType} ending {request.visitor.idLast4}</p>}</Info><Info title="Visit"><p>{request.visitingCompany} · {request.visitingSite}</p><p>{request.visitPurposeType} · {request.purpose}</p></Info><Info title="Visit days">{request.visitDays.map(day => <p key={day.id}>{day.visitDate} · {day.status}</p>)}</Info><Info title="Assets">{request.assets.length ? request.assets.map(asset => <p key={asset.id}>{asset.assetType} · {asset.verificationStatus}</p>) : <p>No declared assets.</p>}</Info></div><Info title="Audit timeline">{request.auditHistory.length ? request.auditHistory.map(entry => <p key={entry.id}><strong>{entry.action}</strong> · {entry.details} <span className="text-[var(--muted)]">{new Date(entry.createdAt).toLocaleString()}</span></p>) : <p>No audit entries.</p>}</Info></div>
+  const { id = '' } = useParams()
+  const { user } = useAuth()
+  const [request, setRequest] = useState<VisitorRequestDetail | null>(null)
+  const [error, setError] = useState('')
+  const [acting, setActing] = useState(false)
+
+  const load = useCallback(async () => {
+    try {
+      setRequest(await getVisitorRequest(id))
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Request details could not be loaded.'))
+    }
+  }, [id])
+
+  useEffect(() => { void load() }, [load])
+
+  const action = async (name: string, values: Record<string, string> = {}) => {
+    setActing(true)
+    try {
+      setRequest(await executeVisitorRequestAction(id, { action: name, ...values }))
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'That workflow action could not be completed.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  if (error) return <p role="alert" className="border border-[#e1b5b5] bg-[#fff4f4] p-4 text-sm text-[#9b2c2c]">{error}</p>
+  if (!request) return <p className="text-sm text-[var(--muted)]">Loading request...</p>
+
+  const forms = request.visitorForms ?? (request.visitorFormId ? [{ id: request.visitorFormId, status: request.currentStatus === 'VISITOR_FORM_PENDING' ? 'PENDING' : 'SUBMITTED', fullName: request.visitor.fullName }] : [])
+
+  return <div className="space-y-6"><Link to="/visitor-requests" className="text-sm font-semibold text-[var(--royal-blue)]">&lt;- Requests</Link><header><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Request detail</p><h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">{request.requestNumber}</h1><p className="mt-2 text-sm text-[var(--muted)]">{request.visitor.fullName || 'Visitor form pending'} - {request.currentStatus}</p></header><Info title="Visitor forms"><div className="space-y-3">{forms.map((form, index) => <div key={form.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--silver)] pb-3"><span><strong>Visitor {index + 1}</strong><span className="ml-3 text-[var(--muted)]">{form.fullName || form.status}</span></span><span className="flex items-center gap-3"><span>{form.status}</span><Link to={`/visitor-forms/${form.id}`} className="font-semibold text-[var(--royal-blue)]">Open visitor form</Link></span></div>)}</div></Info><Actions role={user?.role ?? ''} status={request.currentStatus} acting={acting} onAction={action} /><div className="grid gap-6 lg:grid-cols-2"><Info title="Visitor"><p>{request.visitor.fullName || 'Awaiting individual visitor form'}</p><p>{request.visitor.companyName} {request.visitor.designation && `- ${request.visitor.designation}`}</p><p>{request.visitor.country} {request.visitor.citizenship && `- ${request.visitor.citizenship}`}{request.visitor.nationality && ` - ${request.visitor.nationality}`}</p>{request.visitor.idLast4 && <p>{request.visitor.idType} ending {request.visitor.idLast4}</p>}</Info><Info title="Visit"><p>{request.visitingCompany} - {request.visitingSite}</p><p>{request.visitPurposeType} - {request.purpose}</p></Info><Info title="Visit days">{request.visitDays.map(day => <p key={day.id}>{day.visitDate} - {day.status}</p>)}</Info><Info title="Assets">{request.assets.length ? request.assets.map(asset => <p key={asset.id}>{asset.assetType} - {asset.verificationStatus}</p>) : <p>No declared assets.</p>}</Info></div><Info title="Audit timeline">{request.auditHistory.length ? request.auditHistory.map(entry => <p key={entry.id}><strong>{entry.action}</strong> - {entry.details} <span className="text-[var(--muted)]">{new Date(entry.createdAt).toLocaleString()}</span></p>) : <p>No audit entries.</p>}</Info></div>
 }
+
 function Actions({ role, status, acting, onAction }: { role: string; status: string; acting: boolean; onAction: (name: string, values?: Record<string, string>) => Promise<void> }) { const button = (name: string, label: string, values?: Record<string, string>) => <button disabled={acting} type="button" onClick={() => void onAction(name, values)} className="rounded-[4px] bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{label}</button>; const host = role === 'HOST_REQUESTER'; const ec = role === 'EXPORT_CONTROL'; return <div className="flex flex-wrap gap-2">{host && status === 'VISITOR_FORM_SUBMITTED' && button('host-review', 'Review visitor form')}{host && status === 'HOST_REVIEW' && button('host-submit', 'Final submit')}{host && status === 'HOST_DPS' && button('dps', 'Submit host DPS', { dpsPerformer: 'HOST_REQUESTER', dpsResult: 'Clear' })}{ec && status === 'EC_DPS' && button('dps', 'Submit EC DPS', { dpsPerformer: 'EXPORT_CONTROL', dpsResult: 'Clear' })}{ec && ['EC_REVIEW', 'DOCUMENTATION_SUBMITTED', 'EC_RE_REVIEW_REQUIRED'].includes(status) && <>{button('ec-approve', 'Approve')}{button('ec-reject', 'Reject', { reason: 'Rejected after review' })}{button('ec-request-documents', 'Request information', { reason: 'Additional information required' })}</>}</div> }
 function Info({ title, children }: { title: string; children: ReactNode }) { return <section className="border border-[var(--silver)] bg-white p-6"><h2 className="display text-xl font-bold text-[var(--royal-blue)]">{title}</h2><div className="mt-4 space-y-2 text-sm text-[var(--ink)]">{children}</div></section> }

@@ -10,7 +10,8 @@ public sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Ex
         try { await next(context); }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Unhandled request exception");
+            try { logger.LogError(exception, "Unhandled request exception"); }
+            catch { }
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "An unexpected error occurred." }));

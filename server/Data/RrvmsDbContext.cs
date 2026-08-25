@@ -30,6 +30,7 @@ public sealed class RrvmsDbContext(DbContextOptions<RrvmsDbContext> options) : D
         modelBuilder.Entity<User>().HasIndex(user => user.Email).IsUnique();
         modelBuilder.Entity<Visitor>().HasIndex(visitor => visitor.FullName);
         modelBuilder.Entity<Visitor>().HasIndex(visitor => visitor.CompanyName);
+        modelBuilder.Entity<Visitor>().HasIndex(visitor => visitor.VisitorRequestId);
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.RequestNumber).IsUnique();
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.Status);
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.MainHostId);
@@ -69,6 +70,12 @@ public sealed class RrvmsDbContext(DbContextOptions<RrvmsDbContext> options) : D
             .WithOne(asset => asset.VisitorRequest)
             .HasForeignKey(asset => asset.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Asset>()
+            .HasOne(asset => asset.Visitor)
+            .WithMany(visitor => visitor.Assets)
+            .HasForeignKey(asset => asset.VisitorId)
+            .OnDelete(DeleteBehavior.SetNull);
             
         modelBuilder.Entity<VisitorRequest>()
             .HasMany(request => request.DpsRecords)

@@ -14,6 +14,9 @@ if (args.Contains("--migrate"))
 }
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Hosting platforms such as Render inject a PORT environment variable; bind to it on all interfaces.
 var runtimePort = Environment.GetEnvironmentVariable("PORT");
@@ -32,6 +35,7 @@ var connectionString = string.IsNullOrWhiteSpace(databaseUrl)
     : databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) || databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
         ? NormalizeDatabaseUrl(databaseUrl)
         : databaseUrl;
+connectionString = NormalizeNpgsqlConnectionString(connectionString);
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
@@ -92,6 +96,7 @@ async Task RunMigrationsAndExit()
             : databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) || databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
                 ? NormalizeDatabaseUrl(databaseUrl)
                 : databaseUrl;
+        connectionString = NormalizeNpgsqlConnectionString(connectionString);
         
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -160,6 +165,12 @@ static string NormalizeDatabaseUrl(string databaseUrl)
     }
 
     return connectionBuilder.ConnectionString;
+}
+
+static string? NormalizeNpgsqlConnectionString(string? connectionString)
+{
+    if (string.IsNullOrWhiteSpace(connectionString)) return connectionString;
+    return new NpgsqlConnectionStringBuilder(connectionString).ConnectionString;
 }
 
 static void LoadLocalEnvironmentFile()

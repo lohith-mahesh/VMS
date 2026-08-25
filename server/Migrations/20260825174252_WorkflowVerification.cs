@@ -352,6 +352,14 @@ namespace RRVMS.Api.Migrations
                 table: "VisitorFormVersions",
                 columns: new[] { "VisitorRequestId", "Version" });
 
+            migrationBuilder.Sql("""
+                INSERT INTO "Users" ("Id", "EmployeeNumber", "FullName", "Email", "Role", "IsActive", "CreatedAt", "UpdatedAt")
+                SELECT DISTINCT review."ReviewerId", 'legacy-' || review."ReviewerId"::text, 'Legacy Export Control Reviewer', 'legacy-' || review."ReviewerId"::text || '@rrvms.invalid', 1, TRUE, NOW(), NOW()
+                FROM "ECReviews" review
+                LEFT JOIN "Users" user_record ON user_record."Id" = review."ReviewerId"
+                WHERE user_record."Id" IS NULL;
+                """);
+
             migrationBuilder.AddForeignKey(
                 name: "FK_ECReviews_Users_ReviewerId",
                 table: "ECReviews",

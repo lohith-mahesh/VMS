@@ -73,9 +73,11 @@ public sealed class User
 public sealed class Visitor
 {
     public Guid Id { get; set; }
+    public Guid? VisitorRequestId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
     public string Citizenship { get; set; } = string.Empty;
+    public string Nationality { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -89,6 +91,7 @@ public sealed class Visitor
     // Navigation
     public ICollection<VisitorRequest> Requests { get; set; } = [];
     public ICollection<VisitorForm> Forms { get; set; } = [];
+    public ICollection<Asset> Assets { get; set; } = [];
 }
 
 public sealed class VisitorRequest
@@ -114,6 +117,7 @@ public sealed class VisitorRequest
     public string VisitingCompany { get; set; } = string.Empty;
     public string VisitingSite { get; set; } = string.Empty;
     public string VisitPurposeType { get; set; } = string.Empty; // Technical, Non-Technical, Other
+    public string Purpose { get; set; } = string.Empty;
     public string AreasToVisit { get; set; } = string.Empty;
     public string SiteTimezone { get; set; } = string.Empty;
     public int NumberOfVisitors { get; set; }
@@ -175,6 +179,7 @@ public sealed class Asset
 {
     public Guid Id { get; set; }
     public Guid VisitorRequestId { get; set; }
+    public Guid? VisitorId { get; set; }
     public string AssetType { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string SerialNumber { get; set; } = string.Empty;
@@ -185,6 +190,7 @@ public sealed class Asset
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public VisitorRequest VisitorRequest { get; set; } = null!;
+    public Visitor? Visitor { get; set; }
 }
 
 public sealed class DPSRecord
@@ -297,6 +303,7 @@ public sealed class VisitorForm
     public Guid VisitorId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string Citizenship { get; set; } = string.Empty;
+    public string Nationality { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
@@ -327,6 +334,7 @@ public sealed class VisitorFormVersion
     public int Version { get; set; }
     public string FullNameSnapshot { get; set; } = string.Empty;
     public string CitizenshipSnapshot { get; set; } = string.Empty;
+    public string NationalitySnapshot { get; set; } = string.Empty;
     public string CountrySnapshot { get; set; } = string.Empty;
     public string CompanySnapshot { get; set; } = string.Empty;
     public string OfficeCitySnapshot { get; set; } = string.Empty;
