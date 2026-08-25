@@ -1,4 +1,3 @@
-  return <div className="space-y-6"><Link to="/visitor-requests" className="text-sm font-semibold text-[var(--royal-blue)]">&lt;- Requests</Link>{request.visitorFormId && request.currentStatus === 'VISITOR_FORM_PENDING' && <a href={`/visitor-forms/${request.visitorFormId}`} className="ml-4 text-sm font-semibold text-[var(--royal-blue)]">Open visitor form</a>}
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { executeVisitorRequestAction, getVisitorRequest, type VisitorRequestDetail } from '../services/apiClient'
