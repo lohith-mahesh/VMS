@@ -1,15 +1,56 @@
 namespace RRVMS.Api.Models;
 
-public enum UserRole { Requester, Host, ExportControl, Security, Admin }
+// FINAL THREE APPLICATION ROLES
+public enum UserRole
+{
+    HOST_REQUESTER,
+    EXPORT_CONTROL,
+    RECEPTION
+}
+
 public enum VisitorType { Internal, External }
-public enum VisitDayStatus { Approved, Expected, Arrived, VerificationInProgress, OnHold, CheckedIn, CheckedOut, NoShow, Completed, Cancelled }
+
+// WORKFLOW STATE MACHINE - AUTHORITATIVE
+public enum RequestStatus
+{
+    DRAFT,
+    VISITOR_FORM_PENDING,
+    VISITOR_FORM_SUBMITTED,
+    HOST_REVIEW,
+    HOST_FINAL_SUBMITTED,
+    CANCELLED_PERSONNEL_CHANGE,
+    HOST_DPS,
+    EC_DPS,
+    EC_REVIEW,
+    PENDING_DOCUMENTATION,
+    DOCUMENTATION_SUBMITTED,
+    EC_RE_REVIEW_REQUIRED,
+    APPROVED,
+    REJECTED,
+    VISIT_PROCESS_COMPLETED
+}
+
+public enum VisitDayStatus
+{
+    UPCOMING,
+    NO_SHOW,
+    RECEPTION_VERIFICATION,
+    RECEPTION_HOLD,
+    ENTRY_REJECTED,
+    CHECKED_IN,
+    CHECKED_OUT,
+    COMPLETED
+}
+
 public enum AssetVerificationStatus { NotVerified, Verified, Mismatch, Undeclared, Rejected }
 public enum DpsPerformedByType { Host, ExportControl }
 public enum DpsStatus { NotRequired, Pending, InProgress, Completed, Failed }
-public enum DpsResult { Clear, Flagged, NotApplicable }
+public enum DpsResult { Clear, Flagged, Rejected }
 public enum EcReviewStatus { Pending, InProgress, PendingDocumentation, Approved, Rejected }
 public enum EcDecision { Approve, RequestDocumentation, Reject }
 public enum BadgeStatus { Available, Issued, Returned, Lost }
+public enum AttendanceCategory { FACILITIES_CONTRACTOR, GAS_TURBINE_RESEARCH_ESTABLISHMENT }
+public enum CommentType { EC_REQUEST, EC_REJECTION, HOST_CHANGE, UNDECLARED_ASSET, HOLD, EXCEPTION, GENERAL }
 
 public sealed class User
 {
@@ -21,6 +62,11 @@ public sealed class User
     public bool IsActive { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+
+    // Navigation
+    public ICollection<VisitorRequest> CreatedRequests { get; set; } = [];
+    public ICollection<Comment> Comments { get; set; } = [];
+    public ICollection<ECReview> Reviews { get; set; } = [];
 }
 
 public sealed class Visitor
@@ -38,33 +84,72 @@ public sealed class Visitor
     public VisitorType VisitorType { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+
+    // Navigation
     public ICollection<VisitorRequest> Requests { get; set; } = [];
+    public ICollection<VisitorForm> Forms { get; set; } = [];
 }
 
 public sealed class VisitorRequest
 {
     public Guid Id { get; set; }
     public string RequestNumber { get; set; } = string.Empty;
+    
+    // WORKFLOW STATE
+    public RequestStatus Status { get; set; } = RequestStatus.DRAFT;
+    
+    // VISITOR AND REQUESTER
     public Guid VisitorId { get; set; }
     public Guid RequesterId { get; set; }
+    
+    // HOSTS
     public Guid MainHostId { get; set; }
-    public Guid? AccompanyingEmployeeId { get; set; }
-    public string Purpose { get; set; } = string.Empty;
+    public Guid? PreviousMainHostId { get; set; }
+    public DateTimeOffset? MainHostChangedAt { get; set; }
+    public Guid? EscortingHostId { get; set; }
+    
+    // BASIC VISIT DETAILS (entered by Host/Requester at creation)
+    public VisitorType VisitorType { get; set; }
     public string VisitingCompany { get; set; } = string.Empty;
     public string VisitingSite { get; set; } = string.Empty;
-    public string VisitPurposeType { get; set; } = string.Empty;
+    public string VisitPurposeType { get; set; } = string.Empty; // Technical, Non-Technical, Other
+    public string AreasToVisit { get; set; } = string.Empty;
+    public string SiteTimezone { get; set; } = string.Empty;
+    public int NumberOfVisitors { get; set; }
+    
+    // VISITOR FORM
+    public Guid? VisitorFormId { get; set; }
+    
+    // DPS
+    public Guid? DpsRecordId { get; set; }
+    public DpsPerformedByType? DpsPerformedBy { get; set; }
+    
+    // REJECTION INFO
+    public string? RejectionReason { get; set; }
+    public DateTimeOffset? RejectedAt { get; set; }
+    
+    // PERSONNEL CHANGE
+    public bool PersonnelChangeRequested { get; set; }
+    public DateTimeOffset? PersonnelChangeRequestedAt { get; set; }
+    
+    // TIMESTAMPS
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public DateTimeOffset? SubmittedAt { get; set; }
     public DateTimeOffset? CancelledAt { get; set; }
-    public string? RejectionReason { get; set; }
-    public string CurrentStatus { get; set; } = "Draft";
+    public DateTimeOffset? ApprovedAt { get; set; }
+    
+    // NAVIGATION
     public Visitor Visitor { get; set; } = null!;
+    public VisitorForm? VisitorForm { get; set; }
     public ICollection<VisitDay> VisitDays { get; set; } = [];
     public ICollection<Asset> Assets { get; set; } = [];
     public ICollection<DPSRecord> DpsRecords { get; set; } = [];
     public ICollection<ECReview> EcReviews { get; set; } = [];
     public ICollection<Document> Documents { get; set; } = [];
+    public ICollection<Comment> Comments { get; set; } = [];
+    public ICollection<AdditionalInformationRequest> InformationRequests { get; set; } = [];
+    public ICollection<AttendanceRecord> AttendanceRecords { get; set; } = [];
 }
 
 public sealed class VisitDay
@@ -74,12 +159,14 @@ public sealed class VisitDay
     public DateOnly VisitDate { get; set; }
     public TimeOnly? ExpectedArrivalTime { get; set; }
     public TimeOnly? ExpectedDepartureTime { get; set; }
-    public VisitDayStatus Status { get; set; }
+    public VisitDayStatus Status { get; set; } = VisitDayStatus.UPCOMING;
     public DateTimeOffset? ActualArrivalTime { get; set; }
     public DateTimeOffset? ActualDepartureTime { get; set; }
     public DateTimeOffset? NoShowMarkedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+    
+    // Navigation
     public VisitorRequest VisitorRequest { get; set; } = null!;
 }
 
@@ -125,7 +212,10 @@ public sealed class ECReview
     public string RequestedDocuments { get; set; } = string.Empty;
     public DateTimeOffset? ReviewedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+    
+    // Navigation
     public VisitorRequest VisitorRequest { get; set; } = null!;
+    public User Reviewer { get; set; } = null!;
 }
 
 public sealed class Document
@@ -159,7 +249,7 @@ public sealed class VisitCheckIn
     public Guid Id { get; set; }
     public Guid VisitDayId { get; set; }
     public Guid BadgeId { get; set; }
-    public Guid SecurityUserId { get; set; }
+    public Guid ReceptionUserId { get; set; }
     public bool PhysicalIdVerified { get; set; }
     public bool AssetsVerified { get; set; }
     public DateTimeOffset CheckedInAt { get; set; }
@@ -170,7 +260,7 @@ public sealed class VisitCheckOut
     public Guid Id { get; set; }
     public Guid VisitDayId { get; set; }
     public Guid BadgeId { get; set; }
-    public Guid SecurityUserId { get; set; }
+    public Guid ReceptionUserId { get; set; }
     public bool BadgeReturned { get; set; }
     public string Notes { get; set; } = string.Empty;
     public DateTimeOffset CheckedOutAt { get; set; }
@@ -195,4 +285,85 @@ public sealed class AuditLog
     public Guid? PerformedByUserId { get; set; }
     public string Details { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+// NEW MODELS FOR COMPLETE WORKFLOW
+
+public sealed class VisitorForm
+{
+    public Guid Id { get; set; }
+    public Guid VisitorRequestId { get; set; }
+    public Guid VisitorId { get; set; }
+    public string FullName { get; set; } = string.Empty;
+    public string Citizenship { get; set; } = string.Empty;
+    public string Country { get; set; } = string.Empty;
+    public string Designation { get; set; } = string.Empty;
+    public string CompanyName { get; set; } = string.Empty;
+    public string OfficeCity { get; set; } = string.Empty;
+    public string OfficeCountry { get; set; } = string.Empty;
+    public string Telephone { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string IdType { get; set; } = string.Empty;
+    public string IdLast4 { get; set; } = string.Empty;
+    public string DeclaredAssets { get; set; } = string.Empty;
+    
+    // STATUS TRACKING
+    public string Status { get; set; } = "PENDING"; // PENDING, SUBMITTED, APPROVED, REJECTED
+    public DateTimeOffset? SubmittedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    
+    // NAVIGATION
+    public VisitorRequest VisitorRequest { get; set; } = null!;
+    public Visitor Visitor { get; set; } = null!;
+}
+
+public sealed class Comment
+{
+    public Guid Id { get; set; }
+    public Guid VisitorRequestId { get; set; }
+    public Guid AuthorUserId { get; set; }
+    public CommentType CommentType { get; set; }
+    public string CommentText { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; set; }
+    
+    // NAVIGATION
+    public VisitorRequest VisitorRequest { get; set; } = null!;
+    public User Author { get; set; } = null!;
+}
+
+public sealed class AdditionalInformationRequest
+{
+    public Guid Id { get; set; }
+    public Guid VisitorRequestId { get; set; }
+    public Guid RequestedByUserId { get; set; }
+    public Guid? VisitorFormId { get; set; }
+    public string RequestedFields { get; set; } = string.Empty;
+    public string RequestComment { get; set; } = string.Empty;
+    public string Status { get; set; } = "PENDING"; // PENDING, SUBMITTED, APPROVED, REJECTED
+    public DateTimeOffset? RespondedAt { get; set; }
+    public string? ResponseSummary { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    
+    // NAVIGATION
+    public VisitorRequest VisitorRequest { get; set; } = null!;
+    public User RequestedBy { get; set; } = null!;
+    public VisitorForm? VisitorForm { get; set; }
+}
+
+public sealed class AttendanceRecord
+{
+    public Guid Id { get; set; }
+    public Guid VisitorRequestId { get; set; }
+    public Guid? VisitDayId { get; set; }
+    public AttendanceCategory Category { get; set; }
+    public bool Completed { get; set; }
+    public Guid? MarkedByUserId { get; set; }
+    public DateTimeOffset? MarkedAt { get; set; }
+    public string? Comments { get; set; }
+    
+    // NAVIGATION
+    public VisitorRequest VisitorRequest { get; set; } = null!;
+    public VisitDay? VisitDay { get; set; }
 }

@@ -16,8 +16,13 @@ public sealed class CreateVisitorRequestDto
     [Required, RegularExpression("^[0-9]{4}$")] public string IdLast4 { get; init; } = string.Empty;
     [Required, StringLength(160)] public string VisitingCompany { get; init; } = string.Empty;
     [Required, StringLength(120)] public string VisitingSite { get; init; } = string.Empty;
+    [Required, StringLength(1000)] public string AreasToVisit { get; init; } = string.Empty;
+    [Required, StringLength(80)] public string SiteTimezone { get; init; } = string.Empty;
+    [Range(1, 1000)] public int NumberOfVisitors { get; init; } = 1;
+    [Required, StringLength(80)] public string VisitPurposeType { get; init; } = "Technical";
     [Required, StringLength(1000)] public string Purpose { get; init; } = string.Empty;
-    [Required, StringLength(80)] public string VisitPurposeType { get; init; } = string.Empty;
+    [Required] public string MainHostId { get; init; } = string.Empty;
+    public string? EscortingHostId { get; init; }
     [MinLength(1)] public List<CreateVisitDayDto> VisitDays { get; init; } = [];
     public List<CreateAssetDto> Assets { get; init; } = [];
 }

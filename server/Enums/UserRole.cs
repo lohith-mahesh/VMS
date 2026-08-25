@@ -2,9 +2,7 @@ namespace RRVMS.Api.Enums;
 
 public enum UserRole
 {
-    Requester,
-    Host,
-    ExportControl,
-    Security,
-    Admin
+    HOST_REQUESTER,
+    EXPORT_CONTROL,
+    RECEPTION
 }

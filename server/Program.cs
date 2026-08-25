@@ -5,6 +5,14 @@ using RRVMS.Api.Middleware;
 using RRVMS.Api.Services;
 
 LoadLocalEnvironmentFile();
+
+// MIGRATION MODE: If --migrate argument is provided, run migrations and exit
+if (args.Contains("--migrate"))
+{
+    await RunMigrationsAndExit();
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Hosting platforms such as Render inject a PORT environment variable; bind to it on all interfaces.
@@ -17,6 +25,7 @@ if (!string.IsNullOrWhiteSpace(runtimePort) && int.TryParse(runtimePort, out var
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 var databaseUrl = builder.Configuration["DATABASE_URL"];
 var connectionString = string.IsNullOrWhiteSpace(databaseUrl)
     ? builder.Configuration.GetConnectionString("DefaultConnection")
@@ -58,18 +67,64 @@ builder.Services.AddCors(options => options.AddPolicy("Client", policy => policy
 
 var app = builder.Build();
 
-// Apply pending EF Core migrations so the schema is always up to date on deploy.
-await using (var migrationScope = app.Services.CreateAsyncScope())
-{
-    var database = migrationScope.ServiceProvider.GetRequiredService<RrvmsDbContext>().Database;
-    await database.MigrateAsync();
-}
+// DO NOT run migrations during normal startup
+// Migrations must be run separately via --migrate argument or pre-deploy hook
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 app.UseCors("Client");
 app.MapControllers();
+
+// HEALTH CHECK ENDPOINT
+app.MapGet("/api/health", async (RrvmsDbContext db) =>
+{
+    try
+    {
+        // Test database connectivity
+        await db.Database.ExecuteSqlRawAsync("SELECT 1");
+        return Results.Ok(new { status = "healthy", timestamp = DateTimeOffset.UtcNow });
+    }
+    catch (Exception)
+    {
+        return Results.Json(new { status = "unhealthy", message = "Database connectivity failed.", timestamp = DateTimeOffset.UtcNow }, statusCode: 503);
+    }
+});
+
 app.Run();
+
+// MIGRATION EXECUTION MODE
+async Task RunMigrationsAndExit()
+{
+    try
+    {
+        LoadLocalEnvironmentFile();
+        
+        var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+        var connectionString = string.IsNullOrWhiteSpace(databaseUrl)
+            ? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+            : NormalizeDatabaseUrl(databaseUrl);
+        
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("DATABASE_URL is not configured.");
+        }
+
+        var optionsBuilder = new DbContextOptionsBuilder<RrvmsDbContext>();
+        optionsBuilder.UseNpgsql(connectionString);
+        
+        using var context = new RrvmsDbContext(optionsBuilder.Options);
+        Console.WriteLine("Connecting to database...");
+        await context.Database.MigrateAsync();
+        Console.WriteLine("Migrations completed successfully.");
+        Environment.Exit(0);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Migration failed: {ex.Message}");
+        Console.Error.WriteLine(ex.StackTrace);
+        Environment.Exit(1);
+    }
+}
 
 static string NormalizeDatabaseUrl(string databaseUrl)
 {
@@ -138,3 +193,4 @@ static void LoadLocalEnvironmentFile()
         }
     }
 }
+

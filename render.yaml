@@ -12,10 +12,10 @@ services:
     plan: free
     region: singapore
     healthCheckPath: /api/health
+    preDeployCommand: dotnet RRVMS.Api.dll --migrate
     autoDeploy: true
     envVars:
-      # Supabase DIRECT connection URL (db.<project-ref>.supabase.co:5432),
-      # not the connection pooler (pgbouncer breaks EF migrations).
+      # Supabase Session Pooler connection URL supplied in Render, never committed.
       - key: DATABASE_URL
         sync: false
       # Comma-separated frontend origins allowed by CORS,
