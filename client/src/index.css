@@ -5,5 +5,7 @@
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
 button, a { font: inherit; }
+button:not(:disabled), a, select, summary { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
 #root { min-height: 100vh; }
 .display { font-family: 'Playfair Display', Georgia, serif; }
