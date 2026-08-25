@@ -9,6 +9,7 @@ import { VisitorRequestsPage } from '../pages/VisitorRequestsPage'
 import { CreateVisitorRequestPage } from '../pages/CreateVisitorRequestPage'
 import { VisitorRequestDetailPage } from '../pages/VisitorRequestDetailPage'
 import { VisitorFormPage } from '../pages/VisitorFormPage'
+import { ExportControlPage } from '../pages/ExportControlPage'
 import { NotificationsPage, PendingActionsPage, ReceptionPage } from '../pages/OperationalPages'
 
 const allRoles = ['HOST_REQUESTER', 'EXPORT_CONTROL', 'RECEPTION'] as const
@@ -40,7 +41,7 @@ export function AppRoutes() {
             <Route path="/todays-visits" element={<ReceptionPage />} />
           </Route>
           <Route element={<ProtectedRoute allowedRoles={['EXPORT_CONTROL']} />}>
-            <Route path="/export-control" element={<PlaceholderPage />} />
+            <Route path="/export-control" element={<ExportControlPage />} />
             <Route path="/reports" element={<PlaceholderPage />} />
           </Route>
           <Route path="/profile" element={<PlaceholderPage />} />

@@ -142,7 +142,7 @@ public sealed class VisitorRequest
     
     // NAVIGATION
     public Visitor Visitor { get; set; } = null!;
-    public VisitorForm? VisitorForm { get; set; }
+    public ICollection<VisitorForm> VisitorForms { get; set; } = [];
     public ICollection<VisitDay> VisitDays { get; set; } = [];
     public ICollection<Asset> Assets { get; set; } = [];
     public ICollection<DPSRecord> DpsRecords { get; set; } = [];

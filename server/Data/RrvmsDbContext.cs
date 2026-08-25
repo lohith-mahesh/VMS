@@ -53,9 +53,9 @@ public sealed class RrvmsDbContext(DbContextOptions<RrvmsDbContext> options) : D
             .OnDelete(DeleteBehavior.Restrict);
             
         modelBuilder.Entity<VisitorRequest>()
-            .HasOne(request => request.VisitorForm)
+            .HasMany(request => request.VisitorForms)
             .WithOne(form => form.VisitorRequest)
-            .HasForeignKey<VisitorForm>(form => form.VisitorRequestId)
+            .HasForeignKey(form => form.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
             
         modelBuilder.Entity<VisitorRequest>()

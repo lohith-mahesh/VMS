@@ -44,3 +44,6 @@ export async function getVisitorForm(id: string) { return (await apiClient.get<V
 export async function submitVisitorForm(id: string, input: VisitorForm) { await apiClient.post(`/api/visitor-forms/${id}/submit`, input) }
 export async function submitAdditionalVisitorForm(id: string, input: VisitorForm) { await apiClient.post(`/api/visitor-forms/${id}/additional-response`, input) }
 export type VisitorForm = { fullName: string; citizenship: string; country: string; designation: string; companyName: string; officeCity: string; officeCountry: string; telephone: string; email: string; idType: string; idLast4: string; assets: Array<{ assetType: string; description: string; serialNumber: string }> }
+export type AnalyticsResponse = { totalRequests: number; byStatus: Record<string, number>; rows: Array<{ requestNumber: string; visitor: string; company: string; visitDate: string; status: string; createdAt: string }> }
+export async function getAnalytics() { return (await apiClient.get<AnalyticsResponse>('/api/analytics')).data }
+export function analyticsExportUrl(format: 'csv' | 'xlsx') { return `${apiBaseUrl}/api/analytics/export.${format}` }

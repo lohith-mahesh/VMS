@@ -21,6 +21,6 @@ export function userFacingApiError(error: unknown, fallback: string) {
   if (!error.response) return 'Unable to connect to RRVMS services.'
   if (error.response.status === 401) return 'Your session has expired. Please sign in again.'
   if (error.response.status === 403) return 'You do not have permission to perform this action.'
-  if (error.response.status >= 500) return 'RRVMS services are temporarily unavailable.'
+  if (error.response.status >= 500) return typeof error.response.data?.error === 'string' ? error.response.data.error : 'RRVMS services are temporarily unavailable.'
   return fallback
 }

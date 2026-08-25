@@ -29,7 +29,9 @@ builder.Services.AddSwaggerGen();
 var databaseUrl = builder.Configuration["DATABASE_URL"];
 var connectionString = string.IsNullOrWhiteSpace(databaseUrl)
     ? builder.Configuration.GetConnectionString("DefaultConnection")
-    : NormalizeDatabaseUrl(databaseUrl);
+    : databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) || databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+        ? NormalizeDatabaseUrl(databaseUrl)
+        : databaseUrl;
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
@@ -87,7 +89,9 @@ async Task RunMigrationsAndExit()
         var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
         var connectionString = string.IsNullOrWhiteSpace(databaseUrl)
             ? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-            : NormalizeDatabaseUrl(databaseUrl);
+            : databaseUrl.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) || databaseUrl.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase)
+                ? NormalizeDatabaseUrl(databaseUrl)
+                : databaseUrl;
         
         if (string.IsNullOrWhiteSpace(connectionString))
         {
