@@ -9,6 +9,29 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(RrvmsDbContext db, IWebHostEnvironment environment, CancellationToken cancellationToken = default)
     {
+        // 0. ALWAYS RUN DATABASE ORPHAN REPAIR ON STARTUP ACROSS ALL ENVIRONMENTS
+        var orphanedRequests = await db.VisitorRequests.Include(r => r.Visitor).Where(r => r.Visitor == null || r.VisitorId == Guid.Empty).ToListAsync(cancellationToken);
+        if (orphanedRequests.Count > 0)
+        {
+            var nowUtc = DateTimeOffset.UtcNow;
+            foreach (var req in orphanedRequests)
+            {
+                var newVisitor = new Visitor
+                {
+                    Id = Guid.NewGuid(),
+                    VisitorRequestId = req.Id,
+                    CompanyName = req.VisitingCompany ?? "Visitor Company",
+                    VisitorType = req.VisitorType,
+                    CreatedAt = req.CreatedAt,
+                    UpdatedAt = nowUtc
+                };
+                db.Visitors.Add(newVisitor);
+                req.VisitorId = newVisitor.Id;
+                req.Visitor = newVisitor;
+            }
+            await db.SaveChangesAsync(cancellationToken);
+        }
+
         var demoEnabled = string.Equals(Environment.GetEnvironmentVariable("DEMO_DATA_ENABLED"), "true", StringComparison.OrdinalIgnoreCase);
         if (!environment.IsDevelopment() && !demoEnabled)
         {
@@ -420,4 +443,3 @@ public static class DbSeeder
 
     private static Guid StableGuid(string value) => new(MD5.HashData(Encoding.UTF8.GetBytes(value)));
 }
-
