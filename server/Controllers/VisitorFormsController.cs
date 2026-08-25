@@ -19,4 +19,12 @@ public sealed class VisitorFormsController(IVisitorRequestService service) : Con
         catch (ArgumentException exception) { return BadRequest(new { error = exception.Message }); }
         catch (InvalidOperationException exception) { return Conflict(new { error = exception.Message }); }
     }
+
+    [HttpPost("{id:guid}/additional-response")]
+    public async Task<IActionResult> AdditionalResponse(Guid id, VisitorFormDto input, CancellationToken cancellationToken)
+    {
+        try { await service.SubmitAdditionalVisitorFormAsync(id, input, cancellationToken); return NoContent(); }
+        catch (KeyNotFoundException exception) { return NotFound(new { error = exception.Message }); }
+        catch (ArgumentException exception) { return BadRequest(new { error = exception.Message }); }
+    }
 }

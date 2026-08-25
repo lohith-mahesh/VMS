@@ -325,7 +325,18 @@ public sealed class VisitorFormVersion
     public Guid VisitorRequestId { get; set; }
     public Guid VisitorFormId { get; set; }
     public int Version { get; set; }
-    public string PayloadJson { get; set; } = string.Empty;
+    public string FullNameSnapshot { get; set; } = string.Empty;
+    public string CitizenshipSnapshot { get; set; } = string.Empty;
+    public string CountrySnapshot { get; set; } = string.Empty;
+    public string CompanySnapshot { get; set; } = string.Empty;
+    public string OfficeCitySnapshot { get; set; } = string.Empty;
+    public string OfficeCountrySnapshot { get; set; } = string.Empty;
+    public string DesignationSnapshot { get; set; } = string.Empty;
+    public string PhoneSnapshot { get; set; } = string.Empty;
+    public string EmailSnapshot { get; set; } = string.Empty;
+    public string IdTypeSnapshot { get; set; } = string.Empty;
+    public string IdLast4Snapshot { get; set; } = string.Empty;
+    public string AssetsSnapshot { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
 }
 

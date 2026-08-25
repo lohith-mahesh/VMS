@@ -48,7 +48,7 @@ public sealed class VisitorAssetDto
 }
 
 public sealed record VisitorRequestListItemDto(Guid Id, string RequestNumber, string VisitorName, string CompanyName, string CurrentStatus, DateTimeOffset CreatedAt);
-public sealed record VisitorRequestDetailDto(Guid Id, string RequestNumber, VisitorDto Visitor, string Purpose, string VisitingCompany, string VisitingSite, string VisitPurposeType, string CurrentStatus, IReadOnlyList<VisitDayDto> VisitDays, IReadOnlyList<AssetDto> Assets, IReadOnlyList<AuditDto> AuditHistory, Guid? VisitorFormId, IReadOnlyList<DpsDto> DpsHistory, IReadOnlyList<EcReviewDto> EcReviews, IReadOnlyList<CommentDto> Comments, IReadOnlyList<InformationRequestDto> InformationRequests, IReadOnlyList<AttendanceDto> Attendance);
+public sealed record VisitorRequestDetailDto(Guid Id, string RequestNumber, VisitorDto Visitor, string Purpose, string VisitingCompany, string VisitingSite, string VisitPurposeType, string CurrentStatus, IReadOnlyList<VisitDayDto> VisitDays, IReadOnlyList<AssetDto> Assets, IReadOnlyList<AuditDto> AuditHistory, Guid? VisitorFormId, IReadOnlyList<DpsDto> DpsHistory, IReadOnlyList<EcReviewDto> EcReviews, IReadOnlyList<CommentDto> Comments, IReadOnlyList<InformationRequestDto> InformationRequests, IReadOnlyList<AttendanceDto> Attendance, IReadOnlyList<VisitorFormVersionDto> FormVersions);
 public sealed record VisitorDto(Guid Id, string FullName, string CompanyName, string Citizenship, string Country, string Designation, string Email, string Phone, string IdType, string IdLast4, string VisitorType);
 public sealed record VisitDayDto(Guid Id, DateOnly VisitDate, TimeOnly? ExpectedArrivalTime, TimeOnly? ExpectedDepartureTime, string Status, DateTimeOffset? ActualArrivalTime, DateTimeOffset? ActualDepartureTime);
 public sealed record AssetDto(Guid Id, string AssetType, string Description, string SerialNumber, bool IsDeclared, bool IsVerified, string VerificationStatus);
@@ -58,3 +58,4 @@ public sealed record EcReviewDto(Guid Id, Guid ReviewerId, string Status, string
 public sealed record CommentDto(Guid Id, Guid AuthorId, string Type, string Text, DateTimeOffset CreatedAt);
 public sealed record InformationRequestDto(Guid Id, string Fields, string Comment, string Status, DateTimeOffset CreatedAt, DateTimeOffset? RespondedAt, string? ResponseSummary);
 public sealed record AttendanceDto(Guid Id, Guid? VisitDayId, string Category, bool Completed, Guid? MarkedByUserId, DateTimeOffset? MarkedAt, string? Comments);
+public sealed record VisitorFormVersionDto(Guid Id, int Version, string FullName, string Citizenship, string Country, string Company, string Designation, string IdType, string IdLast4, string Assets, DateTimeOffset CreatedAt);

@@ -12,7 +12,7 @@ using RRVMS.Api.Data;
 namespace RRVMS.Api.Migrations
 {
     [DbContext(typeof(RrvmsDbContext))]
-    [Migration("20260825172259_WorkflowVerification")]
+    [Migration("20260825174252_WorkflowVerification")]
     partial class WorkflowVerification
     {
         /// <inheritdoc />
@@ -705,10 +705,54 @@ namespace RRVMS.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AssetsSnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CitizenshipSnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CompanySnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CountrySnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("PayloadJson")
+                    b.Property<string>("DesignationSnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EmailSnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FullNameSnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("IdLast4Snapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("IdTypeSnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OfficeCitySnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("OfficeCountrySnapshot")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneSnapshot")
                         .IsRequired()
                         .HasColumnType("text");
 
