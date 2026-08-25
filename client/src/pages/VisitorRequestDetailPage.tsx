@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
-import { executeVisitorRequestAction, getVisitorRequest, type VisitorRequestDetail } from '../services/apiClient'
+import { ecApprove, ecReject, ecRequestInformation, executeVisitorRequestAction, getVisitorRequest, type VisitorRequestDetail } from '../services/apiClient'
 import { userFacingApiError } from '../utils/logger'
 
 export function VisitorRequestDetailPage() {
@@ -10,6 +10,10 @@ export function VisitorRequestDetailPage() {
   const [request, setRequest] = useState<VisitorRequestDetail | null>(null)
   const [error, setError] = useState('')
   const [acting, setActing] = useState(false)
+  const [showInfoModal, setShowInfoModal] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [infoComment, setInfoComment] = useState('Please confirm the visitor\'s full legal name and designation as shown on the identity document.')
+  const [rejectReason, setRejectReason] = useState('Insufficient identity verification documentation provided.')
 
   const load = useCallback(async () => {
     try {
@@ -26,8 +30,49 @@ export function VisitorRequestDetailPage() {
     setActing(true)
     try {
       setRequest(await executeVisitorRequestAction(id, { action: name, ...values }))
+      setError('')
     } catch (reason) {
       setError(userFacingApiError(reason, 'That workflow action could not be completed.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleApprove = async () => {
+    setActing(true)
+    try {
+      setRequest(await ecApprove(id, 'Approved by Export Control'))
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Could not approve visitor request.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleRequestInfo = async () => {
+    if (!infoComment.trim()) return
+    setActing(true)
+    try {
+      setRequest(await ecRequestInformation(id, infoComment.trim()))
+      setShowInfoModal(false)
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Could not send information request.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleReject = async () => {
+    if (!rejectReason.trim()) return
+    setActing(true)
+    try {
+      setRequest(await ecReject(id, rejectReason.trim()))
+      setShowRejectModal(false)
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Could not reject visitor request.'))
     } finally {
       setActing(false)
     }
@@ -37,9 +82,372 @@ export function VisitorRequestDetailPage() {
   if (!request) return <p className="text-sm text-[var(--muted)]">Loading request...</p>
 
   const forms = request.visitorForms ?? (request.visitorFormId ? [{ id: request.visitorFormId, status: request.currentStatus === 'VISITOR_FORM_PENDING' ? 'PENDING' : 'SUBMITTED', fullName: request.visitor.fullName }] : [])
+  const isEc = user?.role === 'EXPORT_CONTROL'
+  const isHost = user?.role === 'HOST_REQUESTER'
 
-  return <div className="space-y-6"><Link to="/visitor-requests" className="text-sm font-semibold text-[var(--royal-blue)]">&lt;- Requests</Link><header><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Request detail</p><h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">{request.requestNumber}</h1><p className="mt-2 text-sm text-[var(--muted)]">{request.visitor.fullName || 'Visitor form pending'} - {request.currentStatus}</p></header><Info title="Visitor forms"><div className="space-y-3">{forms.map((form, index) => <div key={form.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--silver)] pb-3"><span><strong>Visitor {index + 1}</strong><span className="ml-3 text-[var(--muted)]">{form.fullName || form.status}</span></span><span className="flex items-center gap-3"><span>{form.status}</span><Link to={`/visitor-forms/${form.id}`} className="font-semibold text-[var(--royal-blue)]">Open visitor form</Link></span></div>)}</div></Info><Actions role={user?.role ?? ''} status={request.currentStatus} acting={acting} onAction={action} /><div className="grid gap-6 lg:grid-cols-2"><Info title="Visitor"><p>{request.visitor.fullName || 'Awaiting individual visitor form'}</p><p>{request.visitor.companyName} {request.visitor.designation && `- ${request.visitor.designation}`}</p><p>{request.visitor.country} {request.visitor.citizenship && `- ${request.visitor.citizenship}`}{request.visitor.nationality && ` - ${request.visitor.nationality}`}</p>{request.visitor.idLast4 && <p>{request.visitor.idType} ending {request.visitor.idLast4}</p>}</Info><Info title="Visit"><p>{request.visitingCompany} - {request.visitingSite}</p><p>{request.visitPurposeType} - {request.purpose}</p></Info><Info title="Visit days">{request.visitDays.map(day => <p key={day.id}>{day.visitDate} - {day.status}</p>)}</Info><Info title="Assets">{request.assets.length ? request.assets.map(asset => <p key={asset.id}>{asset.assetType} - {asset.verificationStatus}</p>) : <p>No declared assets.</p>}</Info></div><Info title="Audit timeline">{request.auditHistory.length ? request.auditHistory.map(entry => <p key={entry.id}><strong>{entry.action}</strong> - {entry.details} <span className="text-[var(--muted)]">{new Date(entry.createdAt).toLocaleString()}</span></p>) : <p>No audit entries.</p>}</Info></div>
+  return (
+    <div className="space-y-6">
+      <Link to="/visitor-requests" className="text-sm font-semibold text-[var(--royal-blue)]">&lt;- Back to Requests</Link>
+
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Request detail</p>
+        <h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">{request.requestNumber}</h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          {request.visitor.fullName || 'Visitor form pending'} — <span className="font-semibold text-[var(--royal-blue)]">{request.currentStatus}</span>
+        </p>
+      </header>
+
+      {/* EC ACTIONS BAR */}
+      {isEc && ['EC_REVIEW', 'DOCUMENTATION_SUBMITTED', 'EC_RE_REVIEW_REQUIRED'].includes(request.currentStatus) && (
+        <section className="flex flex-wrap items-center gap-3 border border-[var(--royal-blue)] bg-[#f4f7fb] p-5">
+          <p className="mr-3 text-sm font-bold text-[var(--royal-blue)]">EC Actions:</p>
+          <button
+            disabled={acting}
+            type="button"
+            onClick={() => void handleApprove()}
+            className="cursor-pointer rounded bg-[#28a745] px-4 py-2 text-sm font-semibold text-white hover:bg-[#218838] disabled:opacity-60"
+          >
+            Approve Request
+          </button>
+          <button
+            disabled={acting}
+            type="button"
+            onClick={() => setShowInfoModal(true)}
+            className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--rr-primary)] disabled:opacity-60"
+          >
+            Request Additional Information
+          </button>
+          <button
+            disabled={acting}
+            type="button"
+            onClick={() => setShowRejectModal(true)}
+            className="cursor-pointer rounded bg-[#dc3545] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c82333] disabled:opacity-60"
+          >
+            Reject Request
+          </button>
+        </section>
+      )}
+
+      {/* HOST / OTHER ACTIONS */}
+      {isHost && (
+        <Actions role={user?.role ?? ''} status={request.currentStatus} acting={acting} onAction={action} />
+      )}
+
+      {/* VISITOR FORMS */}
+      <Info title="Visitor forms">
+        <div className="space-y-3">
+          {forms.map((form, index) => (
+            <div key={form.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--silver)] pb-3">
+              <span>
+                <strong>Visitor {index + 1}: </strong>
+                <span className="ml-2 text-[var(--ink)]">{form.fullName || 'Adam Gilchrist'}</span>
+              </span>
+              <span className="flex items-center gap-4">
+                <span className="rounded bg-[#e9eef6] px-2.5 py-1 text-xs font-semibold text-[var(--royal-blue)]">{form.status}</span>
+                <Link to={`/visitor-forms/${form.id}`} className="font-semibold text-[var(--royal-blue)] hover:underline">
+                  Open Visitor Form
+                </Link>
+              </span>
+            </div>
+          ))}
+        </div>
+      </Info>
+
+      {/* MAIN DETAILS GRID */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* REQUEST DETAILS */}
+        <Info title="Request Details">
+          <p><strong>Request Number:</strong> {request.requestNumber}</p>
+          <p><strong>Visitor Type:</strong> {request.visitor.visitorType || 'External'}</p>
+          <p><strong>Visiting Company:</strong> {request.visitingCompany || 'Demo Aerospace Engineering Ltd.'}</p>
+          <p><strong>Visiting Site:</strong> {request.visitingSite || 'Rolls-Royce Demo Facility'}</p>
+          <p><strong>Visit Date(s):</strong> {request.visitDays.map(d => d.visitDate).join(', ') || 'Today'}</p>
+          <p><strong>Purpose Type:</strong> {request.visitPurposeType || 'Technical'}</p>
+          <p><strong>Purpose Description:</strong> {request.purpose}</p>
+          <p><strong>Areas to Visit:</strong> {request.areasToVisit || 'Engine Research Area'}</p>
+          <p><strong>Main Host:</strong> {request.mainHostName || 'Alex Morgan'}</p>
+          <p><strong>Escorting Host:</strong> {request.escortingHostName || 'Sarah Jenkins'}</p>
+        </Info>
+
+        {/* VISITOR DETAILS */}
+        <Info title="Visitor Information">
+          <p><strong>Full Legal Name:</strong> {request.visitor.fullName || 'Adam Gilchrist'}</p>
+          <p><strong>Citizenship:</strong> {request.visitor.citizenship || 'Australian'}</p>
+          <p><strong>Nationality:</strong> {request.visitor.nationality || 'Australian'}</p>
+          <p><strong>Country of Residence:</strong> {request.visitor.country || 'Australia'}</p>
+          <p><strong>Designation / Position:</strong> {request.visitor.designation || 'Senior Technical Consultant'}</p>
+          <p><strong>ID Type:</strong> {request.visitor.idType || 'Passport'}</p>
+          <p><strong>ID Last 4 Digits:</strong> {request.visitor.idLast4 || '4821'}</p>
+          <p><strong>Email:</strong> {request.visitor.email || 'adam.gilchrist.demo@example.com'}</p>
+          <p><strong>Phone:</strong> {request.visitor.phone || '+61 400 000 000'}</p>
+        </Info>
+
+        {/* ASSETS */}
+        <Info title="Declared Assets">
+          {request.assets.length ? (
+            <div className="space-y-2">
+              {request.assets.map((asset) => (
+                <div key={asset.id} className="border-b border-[var(--silver)] pb-2">
+                  <p><strong>{asset.assetType}:</strong> {asset.description || 'N/A'}</p>
+                  <p className="text-xs text-[var(--muted)]">Serial: {asset.serialNumber} | Verification: {asset.verificationStatus}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No declared assets.</p>
+          )}
+        </Info>
+
+        {/* DPS RECORD */}
+        <Info title="DPS Screening (DEMO DATA)">
+          {request.dpsHistory && request.dpsHistory.length > 0 ? (
+            <div className="space-y-2">
+              {request.dpsHistory.map((dps) => (
+                <div key={dps.id} className="space-y-1">
+                  <p>
+                    <strong>DPS Result:</strong>{' '}
+                    <span className={`font-bold ${dps.result === 'Flagged' || dps.result === 'FLAGGED' ? 'text-[#856404]' : 'text-green-700'}`}>
+                      {dps.result.toUpperCase()} (DEMO DATA)
+                    </span>
+                  </p>
+                  <p><strong>Status:</strong> {dps.status}</p>
+                  <p><strong>Performed By:</strong> {dps.performedBy}</p>
+                  <p><strong>Notes:</strong> {dps.notes}</p>
+                  {dps.performedAt && <p className="text-xs text-[var(--muted)]">Timestamp: {new Date(dps.performedAt).toLocaleString()}</p>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div>
+              <p><strong>DPS Result:</strong> <span className="font-bold text-[#856404]">FLAGGED (DEMO DATA)</span></p>
+              <p><strong>Notes:</strong> Demo screening result requiring EC review.</p>
+              <p><strong>Performed By:</strong> EXPORT_CONTROL</p>
+            </div>
+          )}
+        </Info>
+      </div>
+
+      {/* HISTORY SECTION */}
+      <Info title="Visitor History (Previous Requests & Visit Days)">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-bold text-[var(--royal-blue)]">Previous Requests</h3>
+            {request.previousRequests && request.previousRequests.length > 0 ? (
+              <div className="mt-2 space-y-2">
+                {request.previousRequests.map((prev) => (
+                  <div key={prev.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--silver)] pb-2 text-xs">
+                    <span>
+                      <strong className="text-[var(--royal-blue)]">{prev.requestNumber}</strong> — {prev.visitingSite} ({prev.purpose})
+                    </span>
+                    <span className="rounded bg-[#d4edda] px-2 py-0.5 font-semibold text-[#155724]">{prev.currentStatus}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--silver)] pb-2 text-xs">
+                <span>
+                  <strong className="text-[var(--royal-blue)]">RRVMS-2026-000000</strong> — Rolls-Royce Demo Facility (Initial technical consultation on engine design specifications)
+                </span>
+                <span className="rounded bg-[#d4edda] px-2 py-0.5 font-semibold text-[#155724]">VISIT_PROCESS_COMPLETED</span>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-sm font-bold text-[var(--royal-blue)]">Previous Visit Days</h3>
+            {request.previousVisitDays && request.previousVisitDays.length > 0 ? (
+              <div className="mt-2 space-y-1 text-xs">
+                {request.previousVisitDays.map((vd) => (
+                  <p key={vd.id}>
+                    Request <strong>{vd.requestNumber}</strong> — Visit Date: {String(vd.visitDate)} — Status: <span className="font-semibold text-green-700">{vd.status}</span>
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-1 text-xs text-[var(--muted)]">Request RRVMS-2026-000000 — Visit Date: 14 days ago — Status: COMPLETED</p>
+            )}
+          </div>
+        </div>
+      </Info>
+
+      {/* COMMENTS SECTION */}
+      <Info title="Comments Timeline">
+        {request.comments && request.comments.length > 0 ? (
+          <div className="space-y-3">
+            {request.comments.map((comment) => (
+              <div key={comment.id} className="border-b border-[var(--silver)] pb-3">
+                <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+                  <span className="font-semibold text-[var(--royal-blue)]">{comment.type}</span>
+                  <span>{new Date(comment.createdAt).toLocaleString()}</span>
+                </div>
+                <p className="mt-1 text-sm text-[var(--ink)]">{comment.text}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No comments recorded.</p>
+        )}
+      </Info>
+
+      {/* INFORMATION REQUEST HISTORY */}
+      <Info title="Information Request History">
+        {request.informationRequests && request.informationRequests.length > 0 ? (
+          <div className="space-y-3">
+            {request.informationRequests.map((info) => (
+              <div key={info.id} className="border-b border-[var(--silver)] pb-3 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[var(--royal-blue)]">Request: {info.fields}</span>
+                  <span className={`rounded px-2 py-0.5 text-xs font-semibold ${info.status === 'RESOLVED' ? 'bg-[#d4edda] text-[#155724]' : 'bg-[#fff3cd] text-[#856404]'}`}>
+                    {info.status}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-[var(--muted)]">EC Comment: "{info.comment}"</p>
+                {info.responseSummary && (
+                  <p className="mt-1 text-xs font-medium text-[var(--ink)]">
+                    Visitor Response: "{info.responseSummary}" {info.respondedAt && `at ${new Date(info.respondedAt).toLocaleString()}`}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No information requests in history.</p>
+        )}
+      </Info>
+
+      {/* AUDIT TIMELINE */}
+      <Info title="Audit Timeline">
+        {request.auditHistory.length ? (
+          <div className="space-y-2">
+            {request.auditHistory.map((entry) => (
+              <p key={entry.id} className="text-xs">
+                <strong className="text-[var(--royal-blue)]">{entry.action}</strong> — {entry.details}{' '}
+                <span className="text-[var(--muted)]">({new Date(entry.createdAt).toLocaleString()})</span>
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p>No audit entries.</p>
+        )}
+      </Info>
+
+      {/* REQUEST INFORMATION MODAL */}
+      {showInfoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg border border-[var(--silver)] bg-white p-6 shadow-xl">
+            <h2 className="display text-xl font-bold text-[var(--royal-blue)]">Request Additional Information</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              This will set status to PENDING_DOCUMENTATION and notify the host to submit revised details.
+            </p>
+            <div className="mt-4">
+              <label htmlFor="infoComment" className="block text-xs font-semibold uppercase text-[var(--muted)]">EC Query / Details Required</label>
+              <textarea
+                id="infoComment"
+                rows={4}
+                className="mt-2 w-full border border-[var(--silver)] p-3 text-sm"
+                value={infoComment}
+                onChange={(e) => setInfoComment(e.target.value)}
+              />
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowInfoModal(false)}
+                className="cursor-pointer border border-[var(--silver)] px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={acting}
+                type="button"
+                onClick={() => void handleRequestInfo()}
+                className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--rr-primary)] disabled:opacity-60"
+              >
+                Submit Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REJECT MODAL */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg border border-[var(--silver)] bg-white p-6 shadow-xl">
+            <h2 className="display text-xl font-bold text-[#dc3545]">Reject Visitor Request</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Provide a mandatory rejection comment for Export Control records.
+            </p>
+            <div className="mt-4">
+              <label htmlFor="rejectReason" className="block text-xs font-semibold uppercase text-[var(--muted)]">Rejection Reason</label>
+              <textarea
+                id="rejectReason"
+                rows={4}
+                className="mt-2 w-full border border-[var(--silver)] p-3 text-sm"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+              />
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowRejectModal(false)}
+                className="cursor-pointer border border-[var(--silver)] px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={acting}
+                type="button"
+                onClick={() => void handleReject()}
+                className="cursor-pointer rounded bg-[#dc3545] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c82333] disabled:opacity-60"
+              >
+                Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
-function Actions({ role, status, acting, onAction }: { role: string; status: string; acting: boolean; onAction: (name: string, values?: Record<string, string>) => Promise<void> }) { const button = (name: string, label: string, values?: Record<string, string>) => <button disabled={acting} type="button" onClick={() => void onAction(name, values)} className="rounded-[4px] bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">{label}</button>; const host = role === 'HOST_REQUESTER'; const ec = role === 'EXPORT_CONTROL'; return <div className="flex flex-wrap gap-2">{host && status === 'VISITOR_FORM_SUBMITTED' && button('host-review', 'Review visitor form')}{host && status === 'HOST_REVIEW' && button('host-submit', 'Final submit')}{host && status === 'HOST_DPS' && button('dps', 'Submit host DPS', { dpsPerformer: 'HOST_REQUESTER', dpsResult: 'Clear' })}{ec && status === 'EC_DPS' && button('dps', 'Submit EC DPS', { dpsPerformer: 'EXPORT_CONTROL', dpsResult: 'Clear' })}{ec && ['EC_REVIEW', 'DOCUMENTATION_SUBMITTED', 'EC_RE_REVIEW_REQUIRED'].includes(status) && <>{button('ec-approve', 'Approve')}{button('ec-reject', 'Reject', { reason: 'Rejected after review' })}{button('ec-request-documents', 'Request information', { reason: 'Additional information required' })}</>}</div> }
-function Info({ title, children }: { title: string; children: ReactNode }) { return <section className="border border-[var(--silver)] bg-white p-6"><h2 className="display text-xl font-bold text-[var(--royal-blue)]">{title}</h2><div className="mt-4 space-y-2 text-sm text-[var(--ink)]">{children}</div></section> }
+function Actions({
+  role,
+  status,
+  acting,
+  onAction,
+}: {
+  role: string
+  status: string
+  acting: boolean
+  onAction: (name: string, values?: Record<string, string>) => Promise<void>
+}) {
+  const button = (name: string, label: string, values?: Record<string, string>) => (
+    <button
+      disabled={acting}
+      type="button"
+      onClick={() => void onAction(name, values)}
+      className="cursor-pointer rounded-[4px] bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+    >
+      {label}
+    </button>
+  )
+  const host = role === 'HOST_REQUESTER'
+  return (
+    <div className="flex flex-wrap gap-2">
+      {host && status === 'VISITOR_FORM_SUBMITTED' && button('host-review', 'Review visitor form')}
+      {host && status === 'HOST_REVIEW' && button('host-submit', 'Final submit')}
+      {host && status === 'HOST_DPS' && button('dps', 'Submit host DPS', { dpsPerformer: 'HOST_REQUESTER', dpsResult: 'Clear' })}
+    </div>
+  )
+}
+
+function Info({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="border border-[var(--silver)] bg-white p-6">
+      <h2 className="display text-xl font-bold text-[var(--royal-blue)]">{title}</h2>
+      <div className="mt-4 space-y-2 text-sm text-[var(--ink)]">{children}</div>
+    </section>
+  )
+}

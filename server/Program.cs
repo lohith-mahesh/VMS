@@ -73,8 +73,12 @@ builder.Services.AddCors(options => options.AddPolicy("Client", policy => policy
 
 var app = builder.Build();
 
-// DO NOT run migrations during normal startup
-// Migrations must be run separately via --migrate argument or pre-deploy hook
+// Seed development / demo data idempotently
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<RrvmsDbContext>();
+    await DbSeeder.SeedAsync(dbContext, app.Environment);
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
@@ -193,4 +197,3 @@ static void LoadLocalEnvironmentFile()
         }
     }
 }
-

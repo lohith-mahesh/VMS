@@ -23,6 +23,30 @@ public sealed class VisitorRequestsController(IVisitorRequestService service, IC
         return result is null ? NotFound(new { error = "Visitor request was not found." }) : Ok(result);
     }
 
+    [HttpGet("{id:guid}/history")]
+    public async Task<IActionResult> GetHistory(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await service.GetAsync(id, cancellationToken);
+        if (result is null) return NotFound(new { error = "Visitor request was not found." });
+        return Ok(new { previousRequests = result.PreviousRequests, previousVisitDays = result.PreviousVisitDays, auditHistory = result.AuditHistory });
+    }
+
+    [HttpGet("{id:guid}/comments")]
+    public async Task<IActionResult> GetComments(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await service.GetAsync(id, cancellationToken);
+        if (result is null) return NotFound(new { error = "Visitor request was not found." });
+        return Ok(result.Comments);
+    }
+
+    [HttpGet("{id:guid}/information-requests")]
+    public async Task<IActionResult> GetInformationRequests(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await service.GetAsync(id, cancellationToken);
+        if (result is null) return NotFound(new { error = "Visitor request was not found." });
+        return Ok(result.InformationRequests);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(CreateVisitorRequestDto input, CancellationToken cancellationToken)
     {
@@ -52,4 +76,78 @@ public sealed class VisitorRequestsController(IVisitorRequestService service, IC
         catch (ArgumentException exception) { return BadRequest(new { error = exception.Message }); }
         catch (InvalidOperationException exception) { return Conflict(new { error = exception.Message }); }
     }
+
+    [HttpPost("{id:guid}/ec/request-information")]
+    public async Task<IActionResult> EcRequestInformation(Guid id, [FromBody] EcRequestInformationInput input, CancellationToken cancellationToken)
+    {
+        if (!currentUserService.IsAuthenticated) return Unauthorized();
+        try
+        {
+            var workflowAction = new WorkflowActionDto
+            {
+                Action = "ec-request-documents",
+                Reason = input.RequestedInformation ?? input.Comment,
+                Comment = input.Comment ?? input.RequestedInformation
+            };
+            var result = await service.ExecuteActionAsync(id, workflowAction, currentUserService.UserId, currentUserService.Role, cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException exception) { return NotFound(new { error = exception.Message }); }
+        catch (UnauthorizedAccessException exception) { return StatusCode(StatusCodes.Status403Forbidden, new { error = exception.Message }); }
+        catch (ArgumentException exception) { return BadRequest(new { error = exception.Message }); }
+        catch (InvalidOperationException exception) { return Conflict(new { error = exception.Message }); }
+    }
+
+    [HttpPost("{id:guid}/ec/approve")]
+    public async Task<IActionResult> EcApprove(Guid id, [FromBody] EcDecisionInput? input, CancellationToken cancellationToken)
+    {
+        if (!currentUserService.IsAuthenticated) return Unauthorized();
+        try
+        {
+            var workflowAction = new WorkflowActionDto
+            {
+                Action = "ec-approve",
+                Comment = input?.Comment
+            };
+            var result = await service.ExecuteActionAsync(id, workflowAction, currentUserService.UserId, currentUserService.Role, cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException exception) { return NotFound(new { error = exception.Message }); }
+        catch (UnauthorizedAccessException exception) { return StatusCode(StatusCodes.Status403Forbidden, new { error = exception.Message }); }
+        catch (ArgumentException exception) { return BadRequest(new { error = exception.Message }); }
+        catch (InvalidOperationException exception) { return Conflict(new { error = exception.Message }); }
+    }
+
+    [HttpPost("{id:guid}/ec/reject")]
+    public async Task<IActionResult> EcReject(Guid id, [FromBody] EcDecisionInput input, CancellationToken cancellationToken)
+    {
+        if (!currentUserService.IsAuthenticated) return Unauthorized();
+        try
+        {
+            var workflowAction = new WorkflowActionDto
+            {
+                Action = "ec-reject",
+                Reason = input.Reason ?? input.Comment ?? "Rejected by Export Control",
+                Comment = input.Comment ?? input.Reason
+            };
+            var result = await service.ExecuteActionAsync(id, workflowAction, currentUserService.UserId, currentUserService.Role, cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException exception) { return NotFound(new { error = exception.Message }); }
+        catch (UnauthorizedAccessException exception) { return StatusCode(StatusCodes.Status403Forbidden, new { error = exception.Message }); }
+        catch (ArgumentException exception) { return BadRequest(new { error = exception.Message }); }
+        catch (InvalidOperationException exception) { return Conflict(new { error = exception.Message }); }
+    }
+}
+
+public sealed class EcRequestInformationInput
+{
+    public string? RequestedInformation { get; set; }
+    public string? Comment { get; set; }
+}
+
+public sealed class EcDecisionInput
+{
+    public string? Comment { get; set; }
+    public string? Reason { get; set; }
 }

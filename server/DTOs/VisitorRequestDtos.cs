@@ -72,8 +72,51 @@ public sealed class VisitorAssetDto
     [StringLength(120)] public string SerialNumber { get; init; } = string.Empty;
 }
 
-public sealed record VisitorRequestListItemDto(Guid Id, string RequestNumber, string VisitorName, string CompanyName, string CurrentStatus, DateTimeOffset CreatedAt);
-public sealed record VisitorRequestDetailDto(Guid Id, string RequestNumber, VisitorDto Visitor, string Purpose, string VisitingCompany, string VisitingSite, string VisitPurposeType, string CurrentStatus, IReadOnlyList<VisitDayDto> VisitDays, IReadOnlyList<AssetDto> Assets, IReadOnlyList<AuditDto> AuditHistory, Guid? VisitorFormId, IReadOnlyList<Guid> VisitorFormIds, IReadOnlyList<VisitorFormSummaryDto> VisitorForms, IReadOnlyList<DpsDto> DpsHistory, IReadOnlyList<EcReviewDto> EcReviews, IReadOnlyList<CommentDto> Comments, IReadOnlyList<InformationRequestDto> InformationRequests, IReadOnlyList<AttendanceDto> Attendance, IReadOnlyList<VisitorFormVersionDto> FormVersions);
+public sealed record VisitorRequestListItemDto(
+    Guid Id,
+    string RequestNumber,
+    string VisitorName,
+    string CompanyName,
+    string CurrentStatus,
+    DateTimeOffset CreatedAt,
+    DateOnly? VisitDate = null,
+    string? HostName = null,
+    string? DpsStatus = null,
+    string? CurrentStage = null,
+    DateTimeOffset? LastUpdated = null
+);
+
+public sealed record PreviousRequestDto(Guid Id, string RequestNumber, string VisitingSite, string Purpose, string CurrentStatus, DateTimeOffset CreatedAt);
+public sealed record PreviousVisitDayDto(Guid Id, string RequestNumber, DateOnly VisitDate, string Status);
+
+public sealed record VisitorRequestDetailDto(
+    Guid Id,
+    string RequestNumber,
+    VisitorDto Visitor,
+    string Purpose,
+    string AreasToVisit,
+    string VisitingCompany,
+    string VisitingSite,
+    string VisitPurposeType,
+    string MainHostName,
+    string? EscortingHostName,
+    string CurrentStatus,
+    IReadOnlyList<VisitDayDto> VisitDays,
+    IReadOnlyList<AssetDto> Assets,
+    IReadOnlyList<AuditDto> AuditHistory,
+    Guid? VisitorFormId,
+    IReadOnlyList<Guid> VisitorFormIds,
+    IReadOnlyList<VisitorFormSummaryDto> VisitorForms,
+    IReadOnlyList<DpsDto> DpsHistory,
+    IReadOnlyList<EcReviewDto> EcReviews,
+    IReadOnlyList<CommentDto> Comments,
+    IReadOnlyList<InformationRequestDto> InformationRequests,
+    IReadOnlyList<AttendanceDto> Attendance,
+    IReadOnlyList<VisitorFormVersionDto> FormVersions,
+    IReadOnlyList<PreviousRequestDto> PreviousRequests,
+    IReadOnlyList<PreviousVisitDayDto> PreviousVisitDays
+);
+
 public sealed record VisitorFormSummaryDto(Guid Id, string Status, string FullName);
 public sealed record VisitorDto(Guid Id, string FullName, string CompanyName, string Citizenship, string Nationality, string Country, string Designation, string Email, string Phone, string IdType, string IdLast4, string VisitorType);
 public sealed record VisitDayDto(Guid Id, DateOnly VisitDate, TimeOnly? ExpectedArrivalTime, TimeOnly? ExpectedDepartureTime, string Status, DateTimeOffset? ActualArrivalTime, DateTimeOffset? ActualDepartureTime);
