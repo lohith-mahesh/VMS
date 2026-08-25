@@ -10,8 +10,12 @@ public sealed class WorkflowActionDto
     public Guid? VisitDayId { get; init; }
     public string? BadgeNumber { get; init; }
     public string? IdLast4 { get; init; }
+    public string? IdType { get; init; }
     public string? AssetSerials { get; init; }
     public string? NewUserId { get; init; }
+    public string? DpsResult { get; init; }
+    public string? DpsNotes { get; init; }
+    public string? DpsPerformer { get; init; }
 }
 
 public sealed record WorkflowResultDto(Guid RequestId, string RequestNumber, string Status, string Action);

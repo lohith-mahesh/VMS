@@ -8,6 +8,8 @@ import { AccessRestrictedPage } from '../pages/AccessRestrictedPage'
 import { VisitorRequestsPage } from '../pages/VisitorRequestsPage'
 import { CreateVisitorRequestPage } from '../pages/CreateVisitorRequestPage'
 import { VisitorRequestDetailPage } from '../pages/VisitorRequestDetailPage'
+import { VisitorFormPage } from '../pages/VisitorFormPage'
+  return <Routes><Route path="/login" element={<LoginPage />} /><Route path="/visitor-forms/:id" element={<VisitorFormPage />} /><Route element={<ProtectedRoute />}>
 import { NotificationsPage, PendingActionsPage, ReceptionPage } from '../pages/OperationalPages'
 
 const allRoles = ['HOST_REQUESTER', 'EXPORT_CONTROL', 'RECEPTION'] as const

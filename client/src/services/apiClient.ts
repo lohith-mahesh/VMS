@@ -20,11 +20,11 @@ apiClient.interceptors.response.use((response) => response, (error) => { logger.
 
 export type HealthResponse = { status: string; service: string; database: string }
 export type VisitorRequestListItem = { id: string; requestNumber: string; visitorName: string; companyName: string; currentStatus: string; createdAt: string }
-export type VisitorRequestDetail = { id: string; requestNumber: string; visitor: { fullName: string; companyName: string; citizenship: string; country: string; designation: string; email: string; phone: string; idType: string; idLast4: string; visitorType: string }; purpose: string; visitingCompany: string; visitingSite: string; visitPurposeType: string; currentStatus: string; visitDays: Array<{ id: string; visitDate: string; expectedArrivalTime?: string; expectedDepartureTime?: string; status: string }>; assets: Array<{ id: string; assetType: string; description: string; serialNumber: string; verificationStatus: string }>; auditHistory: Array<{ id: string; action: string; details: string; createdAt: string }> }
+export type VisitorRequestDetail = { id: string; requestNumber: string; visitor: { fullName: string; companyName: string; citizenship: string; country: string; designation: string; email: string; phone: string; idType: string; idLast4: string; visitorType: string }; purpose: string; visitingCompany: string; visitingSite: string; visitPurposeType: string; currentStatus: string; visitorFormId?: string; visitDays: Array<{ id: string; visitDate: string; expectedArrivalTime?: string; expectedDepartureTime?: string; status: string }>; assets: Array<{ id: string; assetType: string; description: string; serialNumber: string; verificationStatus: string }>; auditHistory: Array<{ id: string; action: string; details: string; createdAt: string }> }
 export type CreateVisitorRequest = { visitorType: 'Internal' | 'External'; visitingCompany: string; visitingSite: string; areasToVisit: string; siteTimezone: string; numberOfVisitors: number; purpose: string; visitPurposeType: 'Technical' | 'Non-Technical' | 'Other'; mainHostId: string; escortingHostId?: string; visitDays: Array<{ visitDate: string; expectedArrivalTime?: string; expectedDepartureTime?: string }> }
 export type DashboardResponse = { totalRequests: number; pendingActions: number; todaysVisits: number; currentlyInside: number; upcomingVisits: number; noShows: number; pendingEcReviews: number; pendingDocumentation: number; recentRequests: VisitorRequestListItem[] }
 export type NotificationItem = { id: string; type: string; message: string; isRead: boolean; createdAt: string }
-export type SecurityVisitor = { id: string; visitDate: string; status: string; requestId: string; requestNumber: string; visitorName: string; company: string }
+export type ReceptionVisitor = { id: string; visitDate: string; status: string; requestId: string; requestNumber: string; visitorName: string; company: string }
 
 export async function getHealth(): Promise<HealthResponse> {
   const response = await apiClient.get<HealthResponse>('/api/health')
@@ -35,8 +35,11 @@ export async function listVisitorRequests() { return (await apiClient.get<{ item
 export async function getDashboard() { return (await apiClient.get<DashboardResponse>('/api/dashboard')).data }
 export async function getNotifications() { return (await apiClient.get<NotificationItem[]>('/api/notifications')).data }
 export async function markNotificationRead(id: string) { await apiClient.post(`/api/notifications/${id}/read`) }
-export async function getSecurityVisitors(search?: string) { return (await apiClient.get<SecurityVisitor[]>('/api/reception/visitors', { params: { search } })).data }
+export async function getReceptionVisitors(search?: string) { return (await apiClient.get<ReceptionVisitor[]>('/api/reception/visitors', { params: { search } })).data }
 export async function getVisitorRequest(id: string) { return (await apiClient.get<VisitorRequestDetail>(`/api/visitor-requests/${id}`)).data }
 export async function createVisitorRequest(input: CreateVisitorRequest) { return (await apiClient.post<VisitorRequestDetail>('/api/visitor-requests', input)).data }
-export type WorkflowAction = { action: string; comment?: string; reason?: string; visitDayId?: string; badgeNumber?: string; idLast4?: string; assetSerials?: string }
+export type WorkflowAction = { action: string; comment?: string; reason?: string; visitDayId?: string; badgeNumber?: string; idLast4?: string; idType?: string; assetSerials?: string; dpsPerformer?: string; dpsResult?: string; dpsNotes?: string; newUserId?: string }
 export async function executeVisitorRequestAction(id: string, action: WorkflowAction) { return (await apiClient.post<VisitorRequestDetail>(`/api/visitor-requests/${id}/actions`, action)).data }
+export async function getVisitorForm(id: string) { return (await apiClient.get<VisitorForm>(`/api/visitor-forms/${id}`)).data }
+export async function submitVisitorForm(id: string, input: VisitorForm) { await apiClient.post(`/api/visitor-forms/${id}/submit`, input) }
+export type VisitorForm = { fullName: string; citizenship: string; country: string; designation: string; companyName: string; officeCity: string; officeCountry: string; telephone: string; email: string; idType: string; idLast4: string; assets: Array<{ assetType: string; description: string; serialNumber: string }> }

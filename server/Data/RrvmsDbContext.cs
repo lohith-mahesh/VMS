@@ -9,6 +9,7 @@ public sealed class RrvmsDbContext(DbContextOptions<RrvmsDbContext> options) : D
     public DbSet<Visitor> Visitors => Set<Visitor>();
     public DbSet<VisitorRequest> VisitorRequests => Set<VisitorRequest>();
     public DbSet<VisitorForm> VisitorForms => Set<VisitorForm>();
+    public DbSet<VisitorFormVersion> VisitorFormVersions => Set<VisitorFormVersion>();
     public DbSet<VisitDay> VisitDays => Set<VisitDay>();
     public DbSet<Asset> Assets => Set<Asset>();
     public DbSet<DPSRecord> DPSRecords => Set<DPSRecord>();
@@ -34,6 +35,7 @@ public sealed class RrvmsDbContext(DbContextOptions<RrvmsDbContext> options) : D
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.MainHostId);
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.VisitorId);
         modelBuilder.Entity<VisitorForm>().HasIndex(form => form.VisitorRequestId);
+        modelBuilder.Entity<VisitorFormVersion>().HasIndex(version => new { version.VisitorRequestId, version.Version });
         modelBuilder.Entity<VisitDay>().HasIndex(day => day.VisitDate);
         modelBuilder.Entity<VisitDay>().HasIndex(day => day.Status);
         modelBuilder.Entity<ECReview>().HasIndex(review => review.Status);

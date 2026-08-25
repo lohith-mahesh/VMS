@@ -27,6 +27,7 @@ public enum RequestStatus
     EC_RE_REVIEW_REQUIRED,
     APPROVED,
     REJECTED,
+    RECEPTION_HOLD,
     VISIT_PROCESS_COMPLETED
 }
 
@@ -43,9 +44,9 @@ public enum VisitDayStatus
 }
 
 public enum AssetVerificationStatus { NotVerified, Verified, Mismatch, Undeclared, Rejected }
-public enum DpsPerformedByType { Host, ExportControl }
+public enum DpsPerformedByType { HOST_REQUESTER, EXPORT_CONTROL }
 public enum DpsStatus { NotRequired, Pending, InProgress, Completed, Failed }
-public enum DpsResult { Clear, Flagged, Rejected }
+public enum DpsResult { Clear, Flagged, Pending, Rejected }
 public enum EcReviewStatus { Pending, InProgress, PendingDocumentation, Approved, Rejected }
 public enum EcDecision { Approve, RequestDocumentation, Reject }
 public enum BadgeStatus { Available, Issued, Returned, Lost }
@@ -316,6 +317,16 @@ public sealed class VisitorForm
     // NAVIGATION
     public VisitorRequest VisitorRequest { get; set; } = null!;
     public Visitor Visitor { get; set; } = null!;
+}
+
+public sealed class VisitorFormVersion
+{
+    public Guid Id { get; set; }
+    public Guid VisitorRequestId { get; set; }
+    public Guid VisitorFormId { get; set; }
+    public int Version { get; set; }
+    public string PayloadJson { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; set; }
 }
 
 public sealed class Comment

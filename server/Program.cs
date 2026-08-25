@@ -75,21 +75,6 @@ if (app.Environment.IsDevelopment()) { app.UseSwagger(); app.UseSwaggerUI(); }
 app.UseCors("Client");
 app.MapControllers();
 
-// HEALTH CHECK ENDPOINT
-app.MapGet("/api/health", async (RrvmsDbContext db) =>
-{
-    try
-    {
-        // Test database connectivity
-        await db.Database.ExecuteSqlRawAsync("SELECT 1");
-        return Results.Ok(new { status = "healthy", timestamp = DateTimeOffset.UtcNow });
-    }
-    catch (Exception)
-    {
-        return Results.Json(new { status = "unhealthy", message = "Database connectivity failed.", timestamp = DateTimeOffset.UtcNow }, statusCode: 503);
-    }
-});
-
 app.Run();
 
 // MIGRATION EXECUTION MODE
