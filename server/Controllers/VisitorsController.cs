@@ -48,3 +48,4 @@ public sealed class VisitorsController(RrvmsDbContext dbContext) : ControllerBas
         });
     }
 }
+

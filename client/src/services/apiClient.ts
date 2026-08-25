@@ -113,6 +113,16 @@ export type FormVersionItem = {
   createdAt: string
 }
 
+export type AttendanceItem = {
+  id: string
+  visitDayId?: string
+  category: string
+  completed: boolean
+  markedByUserId?: string
+  markedAt?: string
+  comments?: string
+}
+
 export type VisitorRequestDetail = {
   id: string
   requestNumber: string
@@ -151,6 +161,7 @@ export type VisitorRequestDetail = {
   informationRequests?: InformationRequestItem[]
   previousRequests?: PreviousRequest[]
   previousVisitDays?: PreviousVisitDay[]
+  attendance?: AttendanceItem[]
 }
 
 export type CreateVisitorRequest = {
@@ -192,8 +203,30 @@ export type EcDashboardResponse = {
   dpsFlagsItems: VisitorRequestListItem[]
 }
 
+export type ReceptionDashboardResponse = {
+  todaysVisitors: number
+  expected: number
+  arrived: number
+  onHold: number
+  currentlyInside: number
+  checkedOut: number
+  noShow: number
+  items: ReceptionVisitor[]
+}
+
 export type NotificationItem = { id: string; type: string; message: string; isRead: boolean; createdAt: string }
-export type ReceptionVisitor = { id: string; visitDate: string; status: string; requestId: string; requestNumber: string; visitorName: string; company: string }
+export type ReceptionVisitor = {
+  id: string
+  visitDate: string
+  status: string
+  requestId: string
+  requestNumber: string
+  visitorName: string
+  company: string
+  idType?: string
+  idLast4?: string
+  assets?: Array<{ id: string; assetType: string; description: string; serialNumber: string; verificationStatus: string }>
+}
 
 export async function getHealth(): Promise<HealthResponse> {
   const response = await apiClient.get<HealthResponse>('/api/health')
@@ -208,6 +241,9 @@ export async function getDashboard() {
 }
 export async function getEcDashboard() {
   return (await apiClient.get<EcDashboardResponse>('/api/ec/dashboard')).data
+}
+export async function getReceptionDashboard() {
+  return (await apiClient.get<ReceptionDashboardResponse>('/api/reception/dashboard')).data
 }
 export async function getNotifications() {
   return (await apiClient.get<NotificationItem[]>('/api/notifications')).data
@@ -252,6 +288,10 @@ export async function ecApprove(id: string, comment?: string) {
 
 export async function ecReject(id: string, reason: string) {
   return (await apiClient.post<VisitorRequestDetail>(`/api/visitor-requests/${id}/ec/reject`, { reason, comment: reason })).data
+}
+
+export async function updateAttendance(requestId: string, input: { visitDayId?: string; category: string; completed: boolean; comments?: string }) {
+  return (await apiClient.put<AttendanceItem>(`/api/visitor-requests/${requestId}/attendance`, input)).data
 }
 
 export async function getVisitorForm(id: string) {

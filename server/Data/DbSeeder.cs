@@ -420,3 +420,4 @@ public static class DbSeeder
 
     private static Guid StableGuid(string value) => new(MD5.HashData(Encoding.UTF8.GetBytes(value)));
 }
+

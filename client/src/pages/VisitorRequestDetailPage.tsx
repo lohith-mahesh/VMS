@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
-import { ecApprove, ecReject, ecRequestInformation, executeVisitorRequestAction, getVisitorRequest, type VisitorRequestDetail } from '../services/apiClient'
+import { ecApprove, ecReject, ecRequestInformation, executeVisitorRequestAction, getVisitorRequest, updateAttendance, type VisitorRequestDetail } from '../services/apiClient'
 import { userFacingApiError } from '../utils/logger'
 
 export function VisitorRequestDetailPage() {
@@ -12,12 +12,23 @@ export function VisitorRequestDetailPage() {
   const [acting, setActing] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [showRejectModal, setShowRejectModal] = useState(false)
+  const [showVerifyModal, setShowVerifyModal] = useState(false)
+  const [showCheckInModal, setShowCheckInModal] = useState(false)
+  const [showHoldModal, setShowHoldModal] = useState(false)
+
   const [infoComment, setInfoComment] = useState('Please confirm the visitor\'s full legal name and designation as shown on the identity document.')
   const [rejectReason, setRejectReason] = useState('Insufficient identity verification documentation provided.')
+  const [verifyIdType, setVerifyIdType] = useState('Passport')
+  const [verifyIdLast4, setVerifyIdLast4] = useState('4821')
+  const [badgeNumber, setBadgeNumber] = useState('B-101')
+  const [holdComment, setHoldComment] = useState('Undeclared asset detected during reception screening.')
 
   const load = useCallback(async () => {
     try {
-      setRequest(await getVisitorRequest(id))
+      const data = await getVisitorRequest(id)
+      setRequest(data)
+      setVerifyIdType(data.visitor.idType || 'Passport')
+      setVerifyIdLast4(data.visitor.idLast4 || '4821')
       setError('')
     } catch (reason) {
       setError(userFacingApiError(reason, 'Request details could not be loaded.'))
@@ -29,7 +40,8 @@ export function VisitorRequestDetailPage() {
   const action = async (name: string, values: Record<string, string> = {}) => {
     setActing(true)
     try {
-      setRequest(await executeVisitorRequestAction(id, { action: name, ...values }))
+      const visitDayId = values.visitDayId ?? request?.visitDays[0]?.id
+      setRequest(await executeVisitorRequestAction(id, { action: name, visitDayId, ...values }))
       setError('')
     } catch (reason) {
       setError(userFacingApiError(reason, 'That workflow action could not be completed.'))
@@ -78,12 +90,99 @@ export function VisitorRequestDetailPage() {
     }
   }
 
+  const handleVerify = async () => {
+    const visitDayId = request?.visitDays[0]?.id
+    if (!visitDayId) return
+    setActing(true)
+    try {
+      setRequest(await executeVisitorRequestAction(id, { action: 'verify', visitDayId, idType: verifyIdType, idLast4: verifyIdLast4 }))
+      setShowVerifyModal(false)
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Identity verification failed.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleCheckIn = async () => {
+    const visitDayId = request?.visitDays[0]?.id
+    if (!visitDayId || !badgeNumber.trim()) return
+    setActing(true)
+    try {
+      setRequest(await executeVisitorRequestAction(id, { action: 'check-in', visitDayId, badgeNumber: badgeNumber.trim() }))
+      setShowCheckInModal(false)
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Check-in failed.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleCheckOut = async () => {
+    const visitDayId = request?.visitDays[0]?.id
+    if (!visitDayId) return
+    setActing(true)
+    try {
+      setRequest(await executeVisitorRequestAction(id, { action: 'check-out', visitDayId }))
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Check-out failed.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleHold = async () => {
+    const visitDayId = request?.visitDays[0]?.id
+    if (!visitDayId) return
+    setActing(true)
+    try {
+      setRequest(await executeVisitorRequestAction(id, { action: 'hold', visitDayId, comment: holdComment }))
+      setShowHoldModal(false)
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Could not place visitor on hold.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleNoShow = async () => {
+    const visitDayId = request?.visitDays[0]?.id
+    if (!visitDayId) return
+    setActing(true)
+    try {
+      setRequest(await executeVisitorRequestAction(id, { action: 'no-show', visitDayId }))
+      setError('')
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Could not mark no-show.'))
+    } finally {
+      setActing(false)
+    }
+  }
+
+  const handleAttendanceToggle = async (category: string, currentCompleted: boolean) => {
+    try {
+      await updateAttendance(id, { category, completed: !currentCompleted, visitDayId: request?.visitDays[0]?.id })
+      await load()
+    } catch (reason) {
+      setError(userFacingApiError(reason, 'Could not update attendance record.'))
+    }
+  }
+
   if (error) return <p role="alert" className="border border-[#e1b5b5] bg-[#fff4f4] p-4 text-sm text-[#9b2c2c]">{error}</p>
   if (!request) return <p className="text-sm text-[var(--muted)]">Loading request...</p>
 
   const forms = request.visitorForms ?? (request.visitorFormId ? [{ id: request.visitorFormId, status: request.currentStatus === 'VISITOR_FORM_PENDING' ? 'PENDING' : 'SUBMITTED', fullName: request.visitor.fullName }] : [])
   const isEc = user?.role === 'EXPORT_CONTROL'
   const isHost = user?.role === 'HOST_REQUESTER'
+  const isReception = user?.role === 'RECEPTION'
+  const activeDay = request.visitDays[0]
+
+  const fcRecord = request.attendance?.find(a => a.category === 'FACILITIES_CONTRACTOR')
+  const gtreRecord = request.attendance?.find(a => a.category === 'GAS_TURBINE_RESEARCH_ESTABLISHMENT')
 
   return (
     <div className="space-y-6">
@@ -105,7 +204,7 @@ export function VisitorRequestDetailPage() {
             disabled={acting}
             type="button"
             onClick={() => void handleApprove()}
-            className="cursor-pointer rounded bg-[#28a745] px-4 py-2 text-sm font-semibold text-white hover:bg-[#218838] disabled:opacity-60"
+            className="cursor-pointer rounded bg-[#28a745] px-4 py-2 text-sm font-semibold text-white hover:bg-[#218838] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Approve Request
           </button>
@@ -113,7 +212,7 @@ export function VisitorRequestDetailPage() {
             disabled={acting}
             type="button"
             onClick={() => setShowInfoModal(true)}
-            className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--rr-primary)] disabled:opacity-60"
+            className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--rr-primary)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Request Additional Information
           </button>
@@ -121,10 +220,67 @@ export function VisitorRequestDetailPage() {
             disabled={acting}
             type="button"
             onClick={() => setShowRejectModal(true)}
-            className="cursor-pointer rounded bg-[#dc3545] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c82333] disabled:opacity-60"
+            className="cursor-pointer rounded bg-[#dc3545] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c82333] disabled:cursor-not-allowed disabled:opacity-60"
           >
             Reject Request
           </button>
+        </section>
+      )}
+
+      {/* RECEPTION ACTIONS BAR */}
+      {isReception && (
+        <section className="flex flex-wrap items-center gap-3 border border-[var(--royal-blue)] bg-[#e9eef6] p-5">
+          <p className="mr-3 text-sm font-bold text-[var(--royal-blue)]">Reception Actions:</p>
+          {activeDay?.status === 'UPCOMING' && (
+            <button
+              disabled={acting || request.currentStatus !== 'APPROVED'}
+              type="button"
+              onClick={() => setShowVerifyModal(true)}
+              className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--rr-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Verify Identity & Assets
+            </button>
+          )}
+          {activeDay?.status === 'RECEPTION_VERIFICATION' && (
+            <button
+              disabled={acting}
+              type="button"
+              onClick={() => setShowCheckInModal(true)}
+              className="cursor-pointer rounded bg-[#28a745] px-4 py-2 text-sm font-semibold text-white hover:bg-[#218838] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Issue Badge & Check-In
+            </button>
+          )}
+          {activeDay?.status === 'CHECKED_IN' && (
+            <button
+              disabled={acting}
+              type="button"
+              onClick={() => void handleCheckOut()}
+              className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Check-Out Visitor
+            </button>
+          )}
+          {request.currentStatus === 'APPROVED' && (
+            <>
+              <button
+                disabled={acting}
+                type="button"
+                onClick={() => setShowHoldModal(true)}
+                className="cursor-pointer rounded bg-[#ffc107] px-4 py-2 text-sm font-semibold text-black hover:bg-[#e0a800] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Place on Hold
+              </button>
+              <button
+                disabled={acting}
+                type="button"
+                onClick={() => void handleNoShow()}
+                className="cursor-pointer rounded border border-[var(--silver)] bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-[var(--surface)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Mark No-Show
+              </button>
+            </>
+          )}
         </section>
       )}
 
@@ -144,7 +300,7 @@ export function VisitorRequestDetailPage() {
               </span>
               <span className="flex items-center gap-4">
                 <span className="rounded bg-[#e9eef6] px-2.5 py-1 text-xs font-semibold text-[var(--royal-blue)]">{form.status}</span>
-                <Link to={`/visitor-forms/${form.id}`} className="font-semibold text-[var(--royal-blue)] hover:underline">
+                <Link to={`/visitor-forms/${form.id}`} className="font-semibold text-[var(--royal-blue)] hover:underline cursor-pointer">
                   Open Visitor Form
                 </Link>
               </span>
@@ -226,6 +382,35 @@ export function VisitorRequestDetailPage() {
           )}
         </Info>
       </div>
+
+      {/* ATTENDANCE SECTION */}
+      {(isEc || request.currentStatus === 'APPROVED' || request.currentStatus === 'VISIT_PROCESS_COMPLETED') && (
+        <Info title="Attendance Tracking">
+          <p className="mb-3 text-xs text-[var(--muted)]">Mark attendance categories for Export Control compliance records.</p>
+          <div className="space-y-3">
+            <label className="flex cursor-pointer items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={fcRecord?.completed ?? false}
+                onChange={() => void handleAttendanceToggle('FACILITIES_CONTRACTOR', fcRecord?.completed ?? false)}
+                className="cursor-pointer"
+              />
+              <span className="font-semibold text-[var(--ink)]">FACILITIES_CONTRACTOR</span>
+              {fcRecord?.markedAt && <span className="text-xs text-[var(--muted)]">(Marked: {new Date(fcRecord.markedAt).toLocaleString()})</span>}
+            </label>
+            <label className="flex cursor-pointer items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={gtreRecord?.completed ?? false}
+                onChange={() => void handleAttendanceToggle('GAS_TURBINE_RESEARCH_ESTABLISHMENT', gtreRecord?.completed ?? false)}
+                className="cursor-pointer"
+              />
+              <span className="font-semibold text-[var(--ink)]">GAS_TURBINE_RESEARCH_ESTABLISHMENT</span>
+              {gtreRecord?.markedAt && <span className="text-xs text-[var(--muted)]">(Marked: {new Date(gtreRecord.markedAt).toLocaleString()})</span>}
+            </label>
+          </div>
+        </Info>
+      )}
 
       {/* HISTORY SECTION */}
       <Info title="Visitor History (Previous Requests & Visit Days)">
@@ -361,7 +546,7 @@ export function VisitorRequestDetailPage() {
                 disabled={acting}
                 type="button"
                 onClick={() => void handleRequestInfo()}
-                className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--rr-primary)] disabled:opacity-60"
+                className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--rr-primary)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Submit Request
               </button>
@@ -400,9 +585,133 @@ export function VisitorRequestDetailPage() {
                 disabled={acting}
                 type="button"
                 onClick={() => void handleReject()}
-                className="cursor-pointer rounded bg-[#dc3545] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c82333] disabled:opacity-60"
+                className="cursor-pointer rounded bg-[#dc3545] px-4 py-2 text-sm font-semibold text-white hover:bg-[#c82333] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VERIFY IDENTITY MODAL (RECEPTION) */}
+      {showVerifyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg border border-[var(--silver)] bg-white p-6 shadow-xl">
+            <h2 className="display text-xl font-bold text-[var(--royal-blue)]">Verify Visitor Identity & Assets</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Verify the visitor's physical identity document matches their declaration.
+            </p>
+            <div className="mt-4 space-y-3">
+              <label className="block text-xs font-semibold uppercase text-[var(--muted)]">
+                ID Type
+                <input
+                  type="text"
+                  className="mt-1 block w-full border border-[var(--silver)] p-2 text-sm font-normal"
+                  value={verifyIdType}
+                  onChange={(e) => setVerifyIdType(e.target.value)}
+                />
+              </label>
+              <label className="block text-xs font-semibold uppercase text-[var(--muted)]">
+                ID Last 4 Digits
+                <input
+                  type="text"
+                  maxLength={4}
+                  className="mt-1 block w-full border border-[var(--silver)] p-2 text-sm font-normal"
+                  value={verifyIdLast4}
+                  onChange={(e) => setVerifyIdLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                />
+              </label>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowVerifyModal(false)}
+                className="cursor-pointer border border-[var(--silver)] px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={acting}
+                type="button"
+                onClick={() => void handleVerify()}
+                className="cursor-pointer rounded bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--rr-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Confirm Verification
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ISSUE BADGE & CHECK-IN MODAL (RECEPTION) */}
+      {showCheckInModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg border border-[var(--silver)] bg-white p-6 shadow-xl">
+            <h2 className="display text-xl font-bold text-[var(--royal-blue)]">Issue Visitor Badge & Check-In</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">Assign a physical visitor badge number and check-in the visitor.</p>
+            <div className="mt-4">
+              <label htmlFor="badgeNo" className="block text-xs font-semibold uppercase text-[var(--muted)]">Badge Number</label>
+              <input
+                id="badgeNo"
+                type="text"
+                className="mt-2 w-full border border-[var(--silver)] p-3 text-sm"
+                value={badgeNumber}
+                onChange={(e) => setBadgeNumber(e.target.value)}
+              />
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowCheckInModal(false)}
+                className="cursor-pointer border border-[var(--silver)] px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={acting || !badgeNumber.trim()}
+                type="button"
+                onClick={() => void handleCheckIn()}
+                className="cursor-pointer rounded bg-[#28a745] px-4 py-2 text-sm font-semibold text-white hover:bg-[#218838] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Complete Check-In
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* HOLD MODAL (RECEPTION) */}
+      {showHoldModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg border border-[var(--silver)] bg-white p-6 shadow-xl">
+            <h2 className="display text-xl font-bold text-[#856404]">Place Visitor on Hold</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">Record reception hold reason (e.g. undeclared asset or identity mismatch) for EC review.</p>
+            <div className="mt-4">
+              <label htmlFor="holdText" className="block text-xs font-semibold uppercase text-[var(--muted)]">Hold Details / Comment</label>
+              <textarea
+                id="holdText"
+                rows={3}
+                className="mt-2 w-full border border-[var(--silver)] p-3 text-sm"
+                value={holdComment}
+                onChange={(e) => setHoldComment(e.target.value)}
+              />
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowHoldModal(false)}
+                className="cursor-pointer border border-[var(--silver)] px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={acting}
+                type="button"
+                onClick={() => void handleHold()}
+                className="cursor-pointer rounded bg-[#ffc107] px-4 py-2 text-sm font-semibold text-black hover:bg-[#e0a800] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Confirm Hold
               </button>
             </div>
           </div>
@@ -428,7 +737,7 @@ function Actions({
       disabled={acting}
       type="button"
       onClick={() => void onAction(name, values)}
-      className="cursor-pointer rounded-[4px] bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+      className="cursor-pointer rounded-[4px] bg-[var(--royal-blue)] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
     >
       {label}
     </button>
