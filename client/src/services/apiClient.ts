@@ -19,6 +19,10 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error(
+      `[RRVMS API ERROR]\nURL: ${(error.config?.baseURL ?? '') + (error.config?.url ?? '')}\nMETHOD: ${error.config?.method?.toUpperCase() ?? 'UNKNOWN'}\nSTATUS: ${error.response?.status ?? 'NO_RESPONSE'}\nRESPONSE:`,
+      error.response?.data ?? error.message
+    )
     logger.error('API request failed', {
       method: error.config?.method,
       baseUrl: error.config?.baseURL,
