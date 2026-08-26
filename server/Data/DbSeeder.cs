@@ -150,6 +150,7 @@ public static class DbSeeder
             {
                 Id = prevRequestId,
                 RequestNumber = "RRVMS-2026-000000",
+                BatchId = "BATCH-2026-000000",
                 Status = RequestStatus.VISIT_PROCESS_COMPLETED,
                 VisitorId = visitor.Id,
                 RequesterId = hostUser.Id,
@@ -218,6 +219,7 @@ public static class DbSeeder
         {
             Id = currentRequestId,
             RequestNumber = "RRVMS-2026-000001",
+            BatchId = "BATCH-2026-000001",
             Status = RequestStatus.EC_REVIEW,
             VisitorId = visitor.Id,
             RequesterId = hostUser.Id,

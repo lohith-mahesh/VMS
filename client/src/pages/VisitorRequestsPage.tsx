@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listVisitorRequests, type VisitorRequestListItem } from '../services/apiClient'
 import { userFacingApiError } from '../utils/logger'
+import { formatStatus } from '../utils/formatters'
 
 export function VisitorRequestsPage() {
   const [items, setItems] = useState<VisitorRequestListItem[]>([])
@@ -9,5 +10,51 @@ export function VisitorRequestsPage() {
   const [loading, setLoading] = useState(true)
   const load = () => { setLoading(true); setError(''); listVisitorRequests().then((result) => setItems(result.items)).catch((reason) => setError(userFacingApiError(reason, 'Unable to load visitor requests. Please try again.'))).finally(() => setLoading(false)) }
   useEffect(() => { const run = async () => { await load() }; void run() }, [])
-  return <div className="space-y-6"><header className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Workspace</p><h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">Visitor requests</h1><p className="mt-2 text-sm text-[var(--muted)]">Requests persisted in the RRVMS database.</p></div><Link to="/visitor-requests/new" className="rounded-[4px] bg-[var(--royal-blue)] px-4 py-2.5 text-sm font-semibold text-white">Create visitor request</Link></header>{error ? <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border border-[#e1b5b5] bg-[#fff4f4] p-4 text-sm text-[#9b2c2c]"><span>{error}</span><button type="button" onClick={load} className="font-semibold underline">Retry</button></div> : loading ? <p className="text-sm text-[var(--muted)]">Loading visitor requests...</p> : items.length === 0 ? <div className="border border-[var(--silver)] bg-white p-8 text-sm text-[var(--muted)]">No visitor activity yet.</div> : <div className="overflow-x-auto border border-[var(--silver)] bg-white"><table className="w-full min-w-[640px] text-left text-sm"><thead className="border-b border-[var(--silver)] bg-[var(--surface)] text-xs uppercase tracking-wide text-[var(--muted)]"><tr><th className="px-5 py-3">Request</th><th className="px-5 py-3">Visitor</th><th className="px-5 py-3">Company</th><th className="px-5 py-3">Status</th></tr></thead><tbody className="divide-y divide-[var(--silver)]">{items.map((item) => <tr key={item.id}><td className="px-5 py-4"><Link className="font-semibold text-[var(--royal-blue)]" to={`/visitor-requests/${item.id}`}>{item.requestNumber}</Link></td><td className="px-5 py-4">{item.visitorName}</td><td className="px-5 py-4">{item.companyName}</td><td className="px-5 py-4">{item.currentStatus}</td></tr>)}</tbody></table></div>}</div>
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Workspace</p>
+          <h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">Visitor requests</h1>
+          <p className="mt-2 text-sm text-[var(--muted)]">Requests persisted in the RRVMS database.</p>
+        </div>
+        <Link to="/visitor-requests/new" className="rounded-[4px] bg-[var(--royal-blue)] px-4 py-2.5 text-sm font-semibold text-white">Create visitor request</Link>
+      </header>
+      {error ? (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 border border-[#e1b5b5] bg-[#fff4f4] p-4 text-sm text-[#9b2c2c]">
+          <span>{error}</span>
+          <button type="button" onClick={load} className="font-semibold underline">Retry</button>
+        </div>
+      ) : loading ? (
+        <p className="text-sm text-[var(--muted)]">Loading visitor requests...</p>
+      ) : items.length === 0 ? (
+        <div className="border border-[var(--silver)] bg-white p-8 text-sm text-[var(--muted)]">No visitor activity yet.</div>
+      ) : (
+        <div className="overflow-x-auto border border-[var(--silver)] bg-white">
+          <table className="w-full min-w-[640px] text-left text-sm">
+            <thead className="border-b border-[var(--silver)] bg-[var(--surface)] text-xs uppercase tracking-wide text-[var(--muted)]">
+              <tr>
+                <th className="px-5 py-3">Batch ID</th>
+                <th className="px-5 py-3">Request Number</th>
+                <th className="px-5 py-3">Visitor</th>
+                <th className="px-5 py-3">Company</th>
+                <th className="px-5 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--silver)]">
+              {items.map((item) => (
+                <tr key={item.id}>
+                  <td className="px-5 py-4 font-bold text-[var(--royal-blue)]">{item.batchId || '-'}</td>
+                  <td className="px-5 py-4"><Link className="font-semibold text-[var(--royal-blue)]" to={`/visitor-requests/${item.id}`}>{item.requestNumber}</Link></td>
+                  <td className="px-5 py-4 font-medium text-[var(--ink)]">{item.visitorName}</td>
+                  <td className="px-5 py-4 text-[var(--muted)]">{item.companyName}</td>
+                  <td className="px-5 py-4 font-semibold text-[var(--royal-blue)]">{formatStatus(item.currentStatus)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
 }

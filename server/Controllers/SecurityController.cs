@@ -24,7 +24,7 @@ public sealed class ReceptionController(RrvmsDbContext dbContext, ICurrentUserSe
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(day => day.VisitorRequest.Visitor.FullName.Contains(search) || day.VisitorRequest.Visitor.CompanyName.Contains(search) || day.VisitorRequest.RequestNumber.Contains(search));
+            query = query.Where(day => day.VisitorRequest.Visitor.FullName.Contains(search) || day.VisitorRequest.Visitor.CompanyName.Contains(search) || day.VisitorRequest.RequestNumber.Contains(search) || day.VisitorRequest.BatchId.Contains(search));
         }
 
         var items = await query.OrderBy(day => day.VisitDate).Select(day => new
@@ -34,6 +34,7 @@ public sealed class ReceptionController(RrvmsDbContext dbContext, ICurrentUserSe
             status = day.Status.ToString(),
             requestId = day.VisitorRequestId,
             requestNumber = day.VisitorRequest.RequestNumber,
+            batchId = string.IsNullOrWhiteSpace(day.VisitorRequest.BatchId) ? $"BATCH-2026-{day.VisitorRequest.RequestNumber.Replace("RRVMS-2026-", "")}" : day.VisitorRequest.BatchId,
             visitorName = day.VisitorRequest.Visitor.FullName,
             company = day.VisitorRequest.Visitor.CompanyName,
             idType = day.VisitorRequest.Visitor.IdType,
@@ -72,6 +73,7 @@ public sealed class ReceptionController(RrvmsDbContext dbContext, ICurrentUserSe
             status = day.Status.ToString(),
             requestId = day.VisitorRequestId,
             requestNumber = day.VisitorRequest.RequestNumber,
+            batchId = string.IsNullOrWhiteSpace(day.VisitorRequest.BatchId) ? $"BATCH-2026-{day.VisitorRequest.RequestNumber.Replace("RRVMS-2026-", "")}" : day.VisitorRequest.BatchId,
             visitorName = day.VisitorRequest.Visitor.FullName,
             company = day.VisitorRequest.Visitor.CompanyName,
             idType = day.VisitorRequest.Visitor.IdType,

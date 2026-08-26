@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 import { ecApprove, ecReject, ecRequestInformation, executeVisitorRequestAction, getVisitorRequest, updateAttendance, type VisitorRequestDetail } from '../services/apiClient'
 import { userFacingApiError } from '../utils/logger'
+import { formatStatus } from '../utils/formatters'
 
 export function VisitorRequestDetailPage() {
   const { id = '' } = useParams()
@@ -190,9 +191,14 @@ export function VisitorRequestDetailPage() {
 
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Request detail</p>
-        <h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">{request.requestNumber}</h1>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="display text-4xl font-bold text-[var(--royal-blue)]">{request.requestNumber}</h1>
+          <span className="rounded border border-[var(--silver)] bg-[#e9eef6] px-3.5 py-1.5 text-sm font-bold text-[var(--royal-blue)]">
+            Batch ID: {request.batchId}
+          </span>
+        </div>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          {request.visitor.fullName || 'Visitor form pending'} — <span className="font-semibold text-[var(--royal-blue)]">{request.currentStatus}</span>
+          {request.visitor.fullName || 'Visitor form pending'} — <span className="font-semibold text-[var(--royal-blue)]">{formatStatus(request.currentStatus)}</span>
         </p>
       </header>
 
@@ -313,6 +319,7 @@ export function VisitorRequestDetailPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* REQUEST DETAILS */}
         <Info title="Request Details">
+          <p><strong>Batch ID:</strong> <span className="font-bold text-[var(--royal-blue)]">{request.batchId}</span></p>
           <p><strong>Request Number:</strong> {request.requestNumber}</p>
           <p><strong>Visitor Type:</strong> {request.visitor.visitorType || 'External'}</p>
           <p><strong>Visiting Company:</strong> {request.visitingCompany || 'Demo Aerospace Engineering Ltd.'}</p>
@@ -412,109 +419,113 @@ export function VisitorRequestDetailPage() {
         </Info>
       )}
 
-      {/* HISTORY SECTION */}
-      <Info title="Visitor History (Previous Requests & Visit Days)">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-bold text-[var(--royal-blue)]">Previous Requests</h3>
-            {request.previousRequests && request.previousRequests.length > 0 ? (
-              <div className="mt-2 space-y-2">
-                {request.previousRequests.map((prev) => (
-                  <div key={prev.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--silver)] pb-2 text-xs">
+      {/* HISTORY & COMPLIANCE SECTIONS - VISIBLE TO EC & HOST, HIDDEN FOR RECEPTION */}
+      {!isReception && (
+        <>
+          <Info title="Visitor History (Previous Requests & Visit Days)">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-bold text-[var(--royal-blue)]">Previous Requests</h3>
+                {request.previousRequests && request.previousRequests.length > 0 ? (
+                  <div className="mt-2 space-y-2">
+                    {request.previousRequests.map((prev) => (
+                      <div key={prev.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--silver)] pb-2 text-xs">
+                        <span>
+                          <strong className="text-[var(--royal-blue)]">{prev.requestNumber}</strong> — {prev.visitingSite} ({prev.purpose})
+                        </span>
+                        <span className="rounded bg-[#d4edda] px-2 py-0.5 font-semibold text-[#155724]">{formatStatus(prev.currentStatus)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--silver)] pb-2 text-xs">
                     <span>
-                      <strong className="text-[var(--royal-blue)]">{prev.requestNumber}</strong> — {prev.visitingSite} ({prev.purpose})
+                      <strong className="text-[var(--royal-blue)]">RRVMS-2026-000000</strong> — Rolls-Royce Demo Facility (Initial technical consultation on engine design specifications)
                     </span>
-                    <span className="rounded bg-[#d4edda] px-2 py-0.5 font-semibold text-[#155724]">{prev.currentStatus}</span>
+                    <span className="rounded bg-[#d4edda] px-2 py-0.5 font-semibold text-[#155724]">Visit Process Completed</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold text-[var(--royal-blue)]">Previous Visit Days</h3>
+                {request.previousVisitDays && request.previousVisitDays.length > 0 ? (
+                  <div className="mt-2 space-y-1 text-xs">
+                    {request.previousVisitDays.map((vd) => (
+                      <p key={vd.id}>
+                        Request <strong>{vd.requestNumber}</strong> — Visit Date: {String(vd.visitDate)} — Status: <span className="font-semibold text-green-700">{formatStatus(vd.status)}</span>
+                      </p>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-1 text-xs text-[var(--muted)]">Request RRVMS-2026-000000 — Visit Date: 14 days ago — Status: Completed</p>
+                )}
+              </div>
+            </div>
+          </Info>
+
+          {/* COMMENTS SECTION */}
+          <Info title="Comments Timeline">
+            {request.comments && request.comments.length > 0 ? (
+              <div className="space-y-3">
+                {request.comments.map((comment) => (
+                  <div key={comment.id} className="border-b border-[var(--silver)] pb-3">
+                    <div className="flex items-center justify-between text-xs text-[var(--muted)]">
+                      <span className="font-semibold text-[var(--royal-blue)]">{formatStatus(comment.type)}</span>
+                      <span>{new Date(comment.createdAt).toLocaleString()}</span>
+                    </div>
+                    <p className="mt-1 text-sm text-[var(--ink)]">{comment.text}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--silver)] pb-2 text-xs">
-                <span>
-                  <strong className="text-[var(--royal-blue)]">RRVMS-2026-000000</strong> — Rolls-Royce Demo Facility (Initial technical consultation on engine design specifications)
-                </span>
-                <span className="rounded bg-[#d4edda] px-2 py-0.5 font-semibold text-[#155724]">VISIT_PROCESS_COMPLETED</span>
-              </div>
+              <p>No comments recorded.</p>
             )}
-          </div>
+          </Info>
 
-          <div>
-            <h3 className="text-sm font-bold text-[var(--royal-blue)]">Previous Visit Days</h3>
-            {request.previousVisitDays && request.previousVisitDays.length > 0 ? (
-              <div className="mt-2 space-y-1 text-xs">
-                {request.previousVisitDays.map((vd) => (
-                  <p key={vd.id}>
-                    Request <strong>{vd.requestNumber}</strong> — Visit Date: {String(vd.visitDate)} — Status: <span className="font-semibold text-green-700">{vd.status}</span>
+          {/* INFORMATION REQUEST HISTORY */}
+          <Info title="Information Request History">
+            {request.informationRequests && request.informationRequests.length > 0 ? (
+              <div className="space-y-3">
+                {request.informationRequests.map((info) => (
+                  <div key={info.id} className="border-b border-[var(--silver)] pb-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[var(--royal-blue)]">Request: {info.fields}</span>
+                      <span className={`rounded px-2 py-0.5 text-xs font-semibold ${info.status === 'RESOLVED' ? 'bg-[#d4edda] text-[#155724]' : 'bg-[#fff3cd] text-[#856404]'}`}>
+                        {formatStatus(info.status)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--muted)]">EC Comment: "{info.comment}"</p>
+                    {info.responseSummary && (
+                      <p className="mt-1 text-xs font-medium text-[var(--ink)]">
+                        Visitor Response: "{info.responseSummary}" {info.respondedAt && `at ${new Date(info.respondedAt).toLocaleString()}`}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>No information requests in history.</p>
+            )}
+          </Info>
+
+          {/* AUDIT TIMELINE */}
+          <Info title="Audit Timeline">
+            {request.auditHistory.length ? (
+              <div className="space-y-2">
+                {request.auditHistory.map((entry) => (
+                  <p key={entry.id} className="text-xs">
+                    <strong className="text-[var(--royal-blue)]">{formatStatus(entry.action)}</strong> — {entry.details}{' '}
+                    <span className="text-[var(--muted)]">({new Date(entry.createdAt).toLocaleString()})</span>
                   </p>
                 ))}
               </div>
             ) : (
-              <p className="mt-1 text-xs text-[var(--muted)]">Request RRVMS-2026-000000 — Visit Date: 14 days ago — Status: COMPLETED</p>
+              <p>No audit entries.</p>
             )}
-          </div>
-        </div>
-      </Info>
-
-      {/* COMMENTS SECTION */}
-      <Info title="Comments Timeline">
-        {request.comments && request.comments.length > 0 ? (
-          <div className="space-y-3">
-            {request.comments.map((comment) => (
-              <div key={comment.id} className="border-b border-[var(--silver)] pb-3">
-                <div className="flex items-center justify-between text-xs text-[var(--muted)]">
-                  <span className="font-semibold text-[var(--royal-blue)]">{comment.type}</span>
-                  <span>{new Date(comment.createdAt).toLocaleString()}</span>
-                </div>
-                <p className="mt-1 text-sm text-[var(--ink)]">{comment.text}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>No comments recorded.</p>
-        )}
-      </Info>
-
-      {/* INFORMATION REQUEST HISTORY */}
-      <Info title="Information Request History">
-        {request.informationRequests && request.informationRequests.length > 0 ? (
-          <div className="space-y-3">
-            {request.informationRequests.map((info) => (
-              <div key={info.id} className="border-b border-[var(--silver)] pb-3 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[var(--royal-blue)]">Request: {info.fields}</span>
-                  <span className={`rounded px-2 py-0.5 text-xs font-semibold ${info.status === 'RESOLVED' ? 'bg-[#d4edda] text-[#155724]' : 'bg-[#fff3cd] text-[#856404]'}`}>
-                    {info.status}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-[var(--muted)]">EC Comment: "{info.comment}"</p>
-                {info.responseSummary && (
-                  <p className="mt-1 text-xs font-medium text-[var(--ink)]">
-                    Visitor Response: "{info.responseSummary}" {info.respondedAt && `at ${new Date(info.respondedAt).toLocaleString()}`}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>No information requests in history.</p>
-        )}
-      </Info>
-
-      {/* AUDIT TIMELINE */}
-      <Info title="Audit Timeline">
-        {request.auditHistory.length ? (
-          <div className="space-y-2">
-            {request.auditHistory.map((entry) => (
-              <p key={entry.id} className="text-xs">
-                <strong className="text-[var(--royal-blue)]">{entry.action}</strong> — {entry.details}{' '}
-                <span className="text-[var(--muted)]">({new Date(entry.createdAt).toLocaleString()})</span>
-              </p>
-            ))}
-          </div>
-        ) : (
-          <p>No audit entries.</p>
-        )}
-      </Info>
+          </Info>
+        </>
+      )}
 
       {/* REQUEST INFORMATION MODAL */}
       {showInfoModal && (

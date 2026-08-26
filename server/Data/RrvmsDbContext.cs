@@ -32,6 +32,7 @@ public sealed class RrvmsDbContext(DbContextOptions<RrvmsDbContext> options) : D
         modelBuilder.Entity<Visitor>().HasIndex(visitor => visitor.CompanyName);
         modelBuilder.Entity<Visitor>().HasIndex(visitor => visitor.VisitorRequestId);
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.RequestNumber).IsUnique();
+        modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.BatchId);
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.Status);
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.MainHostId);
         modelBuilder.Entity<VisitorRequest>().HasIndex(request => request.VisitorId);
@@ -58,72 +59,48 @@ public sealed class RrvmsDbContext(DbContextOptions<RrvmsDbContext> options) : D
             .WithOne(form => form.VisitorRequest)
             .HasForeignKey(form => form.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         modelBuilder.Entity<VisitorRequest>()
             .HasMany(request => request.VisitDays)
             .WithOne(day => day.VisitorRequest)
             .HasForeignKey(day => day.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         modelBuilder.Entity<VisitorRequest>()
             .HasMany(request => request.Assets)
             .WithOne(asset => asset.VisitorRequest)
             .HasForeignKey(asset => asset.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Asset>()
-            .HasOne(asset => asset.Visitor)
-            .WithMany(visitor => visitor.Assets)
-            .HasForeignKey(asset => asset.VisitorId)
-            .OnDelete(DeleteBehavior.SetNull);
-            
         modelBuilder.Entity<VisitorRequest>()
             .HasMany(request => request.DpsRecords)
             .WithOne(record => record.VisitorRequest)
             .HasForeignKey(record => record.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         modelBuilder.Entity<VisitorRequest>()
             .HasMany(request => request.EcReviews)
             .WithOne(review => review.VisitorRequest)
             .HasForeignKey(review => review.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
-            
-        modelBuilder.Entity<VisitorRequest>()
-            .HasMany(request => request.Documents)
-            .WithOne(document => document.VisitorRequest)
-            .HasForeignKey(document => document.VisitorRequestId)
-            .OnDelete(DeleteBehavior.Cascade);
-            
+
         modelBuilder.Entity<VisitorRequest>()
             .HasMany(request => request.Comments)
             .WithOne(comment => comment.VisitorRequest)
             .HasForeignKey(comment => comment.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         modelBuilder.Entity<VisitorRequest>()
             .HasMany(request => request.InformationRequests)
-            .WithOne(infoReq => infoReq.VisitorRequest)
-            .HasForeignKey(infoReq => infoReq.VisitorRequestId)
+            .WithOne(req => req.VisitorRequest)
+            .HasForeignKey(req => req.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
         modelBuilder.Entity<VisitorRequest>()
             .HasMany(request => request.AttendanceRecords)
             .WithOne(record => record.VisitorRequest)
             .HasForeignKey(record => record.VisitorRequestId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        modelBuilder.Entity<Comment>()
-            .HasOne(comment => comment.Author)
-            .WithMany(user => user.Comments)
-            .HasForeignKey(comment => comment.AuthorUserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<ECReview>()
-            .HasOne(review => review.Reviewer)
-            .WithMany(user => user.Reviews)
-            .HasForeignKey(review => review.ReviewerId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<VisitorForm>()
             .HasOne(form => form.Visitor)
@@ -131,21 +108,10 @@ public sealed class RrvmsDbContext(DbContextOptions<RrvmsDbContext> options) : D
             .HasForeignKey(form => form.VisitorId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<AdditionalInformationRequest>()
-            .HasOne(req => req.RequestedBy)
-            .WithMany()
-            .HasForeignKey(req => req.RequestedByUserId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        modelBuilder.Entity<AttendanceRecord>()
-            .HasOne(record => record.VisitDay)
-            .WithMany()
-            .HasForeignKey(record => record.VisitDayId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-        // COLUMN CONFIGURATION
-        modelBuilder.Entity<AuditLog>().Property(log => log.Details).HasMaxLength(4000);
-        modelBuilder.Entity<Comment>().Property(comment => comment.CommentText).HasMaxLength(2000);
-        modelBuilder.Entity<AdditionalInformationRequest>().Property(req => req.RequestComment).HasMaxLength(2000);
+        modelBuilder.Entity<Asset>()
+            .HasOne(asset => asset.Visitor)
+            .WithMany(visitor => visitor.Assets)
+            .HasForeignKey(asset => asset.VisitorId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

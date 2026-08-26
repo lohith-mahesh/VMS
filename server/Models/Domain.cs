@@ -98,10 +98,11 @@ public sealed class VisitorRequest
 {
     public Guid Id { get; set; }
     public string RequestNumber { get; set; } = string.Empty;
-    
+    public string BatchId { get; set; } = string.Empty;
+
     // WORKFLOW STATE
     public RequestStatus Status { get; set; } = RequestStatus.DRAFT;
-    
+
     // VISITOR AND REQUESTER
     public Guid VisitorId { get; set; }
     public Guid RequesterId { get; set; }
@@ -359,6 +360,7 @@ public sealed class Comment
     
     // NAVIGATION
     public VisitorRequest VisitorRequest { get; set; } = null!;
+    [System.ComponentModel.DataAnnotations.Schema.ForeignKey(nameof(AuthorUserId))]
     public User Author { get; set; } = null!;
 }
 
@@ -378,6 +380,7 @@ public sealed class AdditionalInformationRequest
     
     // NAVIGATION
     public VisitorRequest VisitorRequest { get; set; } = null!;
+    [System.ComponentModel.DataAnnotations.Schema.ForeignKey(nameof(RequestedByUserId))]
     public User RequestedBy { get; set; } = null!;
     public VisitorForm? VisitorForm { get; set; }
 }

@@ -1,10 +1,20 @@
 import axios from 'axios'
 import { logger } from '../utils/logger'
 
-// VITE_API_BASE_URL is baked in at build time (Vercel env var). Falls back to the
-// local dev API. Trailing slashes are trimmed so misconfigured values stay valid.
-const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
-export const apiBaseUrl = configuredBaseUrl.replace(/\/+$/, '')
+const isProd = import.meta.env.PROD
+const rawEnvUrl = import.meta.env.VITE_API_BASE_URL
+
+if (isProd && !rawEnvUrl) {
+  console.error('[RRVMS CONFIG ERROR] VITE_API_BASE_URL is not set in Vercel environment variables for production build!')
+}
+
+const configuredBaseUrl = rawEnvUrl
+  ? rawEnvUrl
+  : isProd
+    ? ''
+    : 'http://localhost:5000'
+
+export const apiBaseUrl = configuredBaseUrl ? configuredBaseUrl.replace(/\/+$/, '') : ''
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,
@@ -39,6 +49,7 @@ export type HealthResponse = { status: string; service: string; database: string
 export type VisitorRequestListItem = {
   id: string
   requestNumber: string
+  batchId?: string
   visitorName: string
   companyName: string
   currentStatus: string
@@ -130,6 +141,7 @@ export type AttendanceItem = {
 export type VisitorRequestDetail = {
   id: string
   requestNumber: string
+  batchId: string
   visitor: {
     id?: string
     fullName: string
@@ -225,6 +237,7 @@ export type ReceptionVisitor = {
   status: string
   requestId: string
   requestNumber: string
+  batchId: string
   visitorName: string
   company: string
   idType?: string
@@ -327,11 +340,7 @@ export type VisitorForm = {
   idLast4: string
   assets: Array<{ assetType: string; description: string; serialNumber: string }>
 }
-export type SubmitVisitorForm = Omit<VisitorForm, 'id' | 'visitorRequestId' | 'requestNumber' | 'status'> & {
-  passportNumber: string
-  visaNumber: string
-  governmentIdNumber: string
-}
+export type SubmitVisitorForm = Omit<VisitorForm, 'id' | 'visitorRequestId' | 'requestNumber' | 'status'>
 export type AnalyticsResponse = {
   totalRequests: number
   byStatus: Record<string, number>

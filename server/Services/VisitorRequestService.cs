@@ -19,7 +19,7 @@ public interface IVisitorRequestService
     Task<VisitorRequestDetailDto> SubmitAdditionalVisitorFormAsync(Guid formId, SubmitVisitorFormDto input, CancellationToken cancellationToken);
 }
 
-public sealed class VisitorRequestService(RrvmsDbContext db) : IVisitorRequestService
+public sealed class VisitorRequestService(RrvmsDbContext db, ICurrentUserService currentUser) : IVisitorRequestService
 {
     public async Task<VisitorFormDto?> GetVisitorFormAsync(Guid formId, CancellationToken ct)
     {
@@ -38,7 +38,7 @@ public sealed class VisitorRequestService(RrvmsDbContext db) : IVisitorRequestSe
         var visitor = form.Visitor; visitor.VisitorRequestId = form.VisitorRequestId; visitor.FullName = form.FullName; visitor.Citizenship = form.Citizenship; visitor.Nationality = form.Nationality; visitor.Country = form.Country; visitor.Designation = form.Designation; visitor.CompanyName = form.CompanyName; visitor.Phone = form.Telephone; visitor.Email = form.Email; visitor.IdType = form.IdType; visitor.IdLast4 = form.IdLast4; visitor.UpdatedAt = now;
         foreach (var asset in input.Assets.Where(asset => !string.IsNullOrWhiteSpace(asset.AssetType))) db.Assets.Add(new Asset { Id = Guid.NewGuid(), VisitorRequestId = form.VisitorRequestId, VisitorId = visitor.Id, AssetType = asset.AssetType.Trim(), Description = asset.Description.Trim(), SerialNumber = asset.SerialNumber.Trim(), IsDeclared = true, VerificationStatus = AssetVerificationStatus.NotVerified, CreatedAt = now, UpdatedAt = now });
         db.VisitorFormVersions.Add(CreateVersion(form, input.Assets, 1, now));
-        var allForms = await db.VisitorForms.Where(item => item.VisitorRequestId == form.VisitorRequestId).ToListAsync(ct); var allFormsSubmitted = allForms.All(item => item.Id == form.Id || item.Status == "SUBMITTED"); form.VisitorRequest.Status = allFormsSubmitted ? RequestStatus.VISITOR_FORM_SUBMITTED : RequestStatus.VISITOR_FORM_PENDING; form.VisitorRequest.UpdatedAt = now; db.Notifications.Add(new Notification { Id = Guid.NewGuid(), UserId = form.VisitorRequest.RequesterId, Type = "VISITOR_FORM_COMPLETED", Message = allFormsSubmitted ? "Visitor form completed - review required." : "A visitor form has been completed; remaining forms are still pending.", CreatedAt = now }); db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), Action = "VISITOR_FORM_SUBMITTED", EntityType = nameof(VisitorRequest), EntityId = form.VisitorRequestId, Details = "Visitor form submitted.", CreatedAt = now });
+        var allForms = await db.VisitorForms.Where(item => item.VisitorRequestId == form.VisitorRequestId).ToListAsync(ct); var allFormsSubmitted = allForms.All(item => item.Id == form.Id || item.Status == "SUBMITTED"); form.VisitorRequest.Status = allFormsSubmitted ? RequestStatus.VISITOR_FORM_SUBMITTED : RequestStatus.VISITOR_FORM_PENDING; form.VisitorRequest.UpdatedAt = now; db.Notifications.Add(new Notification { Id = Guid.NewGuid(), UserId = form.VisitorRequest.RequesterId, Type = "VISITOR_FORM_COMPLETED", Message = allFormsSubmitted ? "Visitor form completed - review required." : "A visitor form has been completed; remaining forms are still pending.", CreatedAt = now }); db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), Action = "VISITOR_FORM_SUBMITTED", EntityType = nameof(VisitorRequest), EntityId = form.VisitorRequestId, Details = $"Visitor form submitted for batch {form.VisitorRequest.BatchId}.", CreatedAt = now });
         await db.SaveChangesAsync(ct);
         return (await GetAsync(form.VisitorRequestId, ct))!;
     }
@@ -52,7 +52,7 @@ public sealed class VisitorRequestService(RrvmsDbContext db) : IVisitorRequestSe
         var version = await db.VisitorFormVersions.CountAsync(item => item.VisitorFormId == formId, ct) + 1; db.VisitorFormVersions.Add(CreateVersion(form, input.Assets, version, now));
         foreach (var asset in input.Assets.Where(asset => !string.IsNullOrWhiteSpace(asset.AssetType))) db.Assets.Add(new Asset { Id = Guid.NewGuid(), VisitorRequestId = form.VisitorRequestId, VisitorId = visitor.Id, AssetType = asset.AssetType.Trim(), Description = asset.Description.Trim(), SerialNumber = asset.SerialNumber.Trim(), IsDeclared = true, VerificationStatus = AssetVerificationStatus.NotVerified, CreatedAt = now, UpdatedAt = now });
         var pending = await db.AdditionalInformationRequests.Where(item => item.VisitorRequestId == form.VisitorRequestId && item.Status == "PENDING").OrderByDescending(item => item.CreatedAt).FirstOrDefaultAsync(ct); if (pending is not null) { pending.Status = "RESOLVED"; pending.RespondedAt = now; pending.ResponseSummary = form.FullName; pending.UpdatedAt = now; }
-        form.VisitorRequest.Status = RequestStatus.DOCUMENTATION_SUBMITTED; form.VisitorRequest.UpdatedAt = now; db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), Action = "ADDITIONAL_VISITOR_FORM_SUBMITTED", EntityType = nameof(VisitorRequest), EntityId = form.VisitorRequestId, Details = $"Visitor form version {version} submitted.", CreatedAt = now }); await db.SaveChangesAsync(ct);
+        form.VisitorRequest.Status = RequestStatus.DOCUMENTATION_SUBMITTED; form.VisitorRequest.UpdatedAt = now; db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), Action = "ADDITIONAL_VISITOR_FORM_SUBMITTED", EntityType = nameof(VisitorRequest), EntityId = form.VisitorRequestId, Details = $"Visitor form version {version} submitted for batch {form.VisitorRequest.BatchId}.", CreatedAt = now }); await db.SaveChangesAsync(ct);
         return (await GetAsync(form.VisitorRequestId, ct))!;
     }
 
@@ -69,17 +69,40 @@ public sealed class VisitorRequestService(RrvmsDbContext db) : IVisitorRequestSe
     }
 
     private static VisitorFormVersion CreateVersion(VisitorForm form, IReadOnlyList<VisitorAssetDto> assets, int version, DateTimeOffset now) => new() { Id = Guid.NewGuid(), VisitorRequestId = form.VisitorRequestId, VisitorFormId = form.Id, Version = version, FullNameSnapshot = form.FullName, CitizenshipSnapshot = form.Citizenship, NationalitySnapshot = form.Nationality, CountrySnapshot = form.Country, CompanySnapshot = form.CompanyName, OfficeCitySnapshot = form.OfficeCity, OfficeCountrySnapshot = form.OfficeCountry, DesignationSnapshot = form.Designation, PhoneSnapshot = form.Telephone, EmailSnapshot = form.Email, IdTypeSnapshot = form.IdType, IdLast4Snapshot = form.IdLast4, AssetsSnapshot = JsonSerializer.Serialize(assets), CreatedAt = now };
+    
     public async Task<(IReadOnlyList<VisitorRequestListItemDto> Items, int Total)> ListAsync(int page, int pageSize, CancellationToken ct)
     {
         var query = db.VisitorRequests.AsNoTracking().Include(r => r.Visitor).Include(r => r.VisitDays).OrderByDescending(r => r.CreatedAt);
         var total = await query.CountAsync(ct); var size = Math.Clamp(pageSize, 1, 100);
-        var items = await query.Skip((Math.Max(page, 1) - 1) * size).Take(size).Select(r => new VisitorRequestListItemDto(r.Id, r.RequestNumber, r.Visitor.FullName, r.VisitingCompany, r.Status.ToString(), r.CreatedAt, r.VisitDays.Select(d => (DateOnly?)d.VisitDate).FirstOrDefault(), null, null, null, r.UpdatedAt)).ToListAsync(ct);
+        var items = await query.Skip((Math.Max(page, 1) - 1) * size).Take(size).Select(r => new VisitorRequestListItemDto(
+            r.Id,
+            r.RequestNumber,
+            string.IsNullOrWhiteSpace(r.BatchId) ? $"BATCH-2026-{r.RequestNumber.Replace("RRVMS-2026-", "")}" : r.BatchId,
+            r.Visitor != null && !string.IsNullOrWhiteSpace(r.Visitor.FullName) ? r.Visitor.FullName : "Visitor form pending",
+            r.VisitingCompany,
+            r.Status.ToString(),
+            r.CreatedAt,
+            r.VisitDays.Select(d => (DateOnly?)d.VisitDate).FirstOrDefault(),
+            null,
+            null,
+            null,
+            r.UpdatedAt)).ToListAsync(ct);
         return (items, total);
     }
 
     public async Task<VisitorRequestDetailDto?> GetAsync(Guid id, CancellationToken ct)
     {
-        var request = await db.VisitorRequests.AsNoTracking().Include(r => r.Visitor).Include(r => r.VisitorForms).Include(r => r.VisitDays).Include(r => r.Assets).Include(r => r.DpsRecords).Include(r => r.EcReviews).Include(r => r.Comments).Include(r => r.InformationRequests).Include(r => r.AttendanceRecords).FirstOrDefaultAsync(r => r.Id == id, ct);
+        var request = await db.VisitorRequests.AsNoTracking()
+            .Include(r => r.Visitor)
+            .Include(r => r.VisitorForms)
+            .Include(r => r.VisitDays)
+            .Include(r => r.Assets)
+            .Include(r => r.DpsRecords)
+            .Include(r => r.EcReviews)
+            .Include(r => r.Comments)
+            .Include(r => r.InformationRequests)
+            .Include(r => r.AttendanceRecords)
+            .FirstOrDefaultAsync(r => r.Id == id, ct);
         if (request is null) return null;
 
         var mainHost = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == request.MainHostId, ct);
@@ -88,7 +111,6 @@ public sealed class VisitorRequestService(RrvmsDbContext db) : IVisitorRequestSe
         var audit = await db.AuditLogs.AsNoTracking().Where(log => log.EntityType == nameof(VisitorRequest) && log.EntityId == id).OrderByDescending(log => log.CreatedAt).Select(log => new AuditDto(log.Id, log.Action, log.EntityType, log.EntityId, log.Details, log.CreatedAt)).ToListAsync(ct);
         var versions = await db.VisitorFormVersions.AsNoTracking().Where(version => version.VisitorRequestId == id).OrderBy(version => version.Version).Select(version => new VisitorFormVersionDto(version.Id, version.Version, version.FullNameSnapshot, version.CitizenshipSnapshot, version.NationalitySnapshot, version.CountrySnapshot, version.CompanySnapshot, version.DesignationSnapshot, version.IdTypeSnapshot, version.IdLast4Snapshot, version.AssetsSnapshot, version.CreatedAt)).ToListAsync(ct);
 
-        // Fetch previous requests and visit days for the same visitor
         var previousRequests = await db.VisitorRequests.AsNoTracking()
             .Where(r => r.VisitorId == request.VisitorId && r.Id != id)
             .OrderByDescending(r => r.CreatedAt)
@@ -102,7 +124,9 @@ public sealed class VisitorRequestService(RrvmsDbContext db) : IVisitorRequestSe
             .Select(vd => new PreviousVisitDayDto(vd.Id, vd.VisitorRequest.RequestNumber, vd.VisitDate, vd.Status.ToString()))
             .ToListAsync(ct);
 
-        return ToDetail(request, mainHost?.FullName ?? "Alex Morgan", escortHost?.FullName ?? "Sarah Jenkins", audit, versions, previousRequests, previousVisitDays);
+        var userRole = currentUser.IsAuthenticated ? currentUser.Role : string.Empty;
+
+        return ToDetail(request, mainHost?.FullName ?? "Alex Morgan", escortHost?.FullName ?? "Sarah Jenkins", audit, versions, previousRequests, previousVisitDays, userRole);
     }
 
     public async Task<VisitorRequestDetailDto> CreateAsync(CreateVisitorRequestDto input, string requesterKey, CancellationToken ct)
@@ -112,14 +136,15 @@ public sealed class VisitorRequestService(RrvmsDbContext db) : IVisitorRequestSe
         if (input.VisitDays.GroupBy(d => d.VisitDate).Any(g => g.Count() > 1)) throw new ArgumentException("Visit dates must be unique.");
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var now = DateTimeOffset.UtcNow;
-        var request = new VisitorRequest { Id = Guid.NewGuid(), RequestNumber = await NextRequestNumber(ct), Status = RequestStatus.VISITOR_FORM_PENDING, RequesterId = StableGuid(requesterKey), MainHostId = StableGuid(input.MainHostId), EscortingHostId = string.IsNullOrWhiteSpace(input.EscortingHostId) ? null : StableGuid(input.EscortingHostId), VisitorType = visitorType, VisitingCompany = input.VisitingCompany.Trim(), VisitingSite = input.VisitingSite.Trim(), Purpose = input.Purpose.Trim(), AreasToVisit = input.AreasToVisit.Trim(), SiteTimezone = input.SiteTimezone.Trim(), NumberOfVisitors = input.NumberOfVisitors, VisitPurposeType = input.VisitPurposeType.Trim(), CreatedAt = now, UpdatedAt = now };
+        var (requestNum, batchId) = await NextNumbers(ct);
+        var request = new VisitorRequest { Id = Guid.NewGuid(), RequestNumber = requestNum, BatchId = batchId, Status = RequestStatus.VISITOR_FORM_PENDING, RequesterId = StableGuid(requesterKey), MainHostId = StableGuid(input.MainHostId), EscortingHostId = string.IsNullOrWhiteSpace(input.EscortingHostId) ? null : StableGuid(input.EscortingHostId), VisitorType = visitorType, VisitingCompany = input.VisitingCompany.Trim(), VisitingSite = input.VisitingSite.Trim(), Purpose = input.Purpose.Trim(), AreasToVisit = input.AreasToVisit.Trim(), SiteTimezone = input.SiteTimezone.Trim(), NumberOfVisitors = input.NumberOfVisitors, VisitPurposeType = input.VisitPurposeType.Trim(), CreatedAt = now, UpdatedAt = now };
         var visitorForms = Enumerable.Range(0, input.NumberOfVisitors).Select(_ => { var visitor = new Visitor { Id = Guid.NewGuid(), VisitorRequestId = request.Id, CompanyName = request.VisitingCompany, VisitorType = visitorType, CreatedAt = now, UpdatedAt = now }; var form = new VisitorForm { Id = Guid.NewGuid(), Visitor = visitor, CompanyName = request.VisitingCompany, Status = "PENDING", CreatedAt = now, UpdatedAt = now }; return (visitor, form); }).ToList();
         request.Visitor = visitorForms[0].visitor;
         request.VisitorId = visitorForms[0].visitor.Id;
         request.VisitorForms = visitorForms.Select(item => item.form).ToList();
         request.VisitorFormId = visitorForms[0].form.Id;
         request.VisitDays = input.VisitDays.Select(d => new VisitDay { Id = Guid.NewGuid(), VisitDate = d.VisitDate, ExpectedArrivalTime = d.ExpectedArrivalTime, ExpectedDepartureTime = d.ExpectedDepartureTime, CreatedAt = now, UpdatedAt = now }).ToList();
-        db.VisitorRequests.Add(request); db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), Action = "REQUEST_CREATED", EntityType = nameof(VisitorRequest), EntityId = request.Id, PerformedByUserId = StableGuid(requesterKey), Details = request.RequestNumber, CreatedAt = now }); db.Notifications.Add(new Notification { Id = Guid.NewGuid(), UserId = request.RequesterId, Type = "VISITOR_FORMS_CREATED", Message = $"{input.NumberOfVisitors} visitor form(s) created and pending.", CreatedAt = now });
+        db.VisitorRequests.Add(request); db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), Action = "REQUEST_CREATED", EntityType = nameof(VisitorRequest), EntityId = request.Id, PerformedByUserId = StableGuid(requesterKey), Details = $"Created request {request.RequestNumber} (Batch {request.BatchId})", CreatedAt = now }); db.Notifications.Add(new Notification { Id = Guid.NewGuid(), UserId = request.RequesterId, Type = "VISITOR_FORMS_CREATED", Message = $"{input.NumberOfVisitors} visitor form(s) created and pending for Batch {request.BatchId}.", CreatedAt = now });
         await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct); return (await GetAsync(request.Id, ct))!;
     }
 
@@ -136,27 +161,96 @@ public sealed class VisitorRequestService(RrvmsDbContext db) : IVisitorRequestSe
         switch (action)
         {
             case "host-review": Role("HOST_REQUESTER"); State(RequestStatus.VISITOR_FORM_SUBMITTED); request.Status = RequestStatus.HOST_REVIEW; break;
-            case "host-submit": Role("HOST_REQUESTER"); State(RequestStatus.HOST_REVIEW); request.Status = request.VisitorType == VisitorType.Internal ? RequestStatus.EC_REVIEW : (string.Equals(input.DpsPerformer, "HOST_REQUESTER", StringComparison.OrdinalIgnoreCase) ? RequestStatus.HOST_DPS : RequestStatus.EC_DPS); Notify("HOST_FINAL_SUBMITTED", "The host submitted a visitor request for compliance review.", StableGuid("prototype-export-control")); break;
+            case "host-submit": Role("HOST_REQUESTER"); State(RequestStatus.HOST_REVIEW); request.Status = request.VisitorType == VisitorType.Internal ? RequestStatus.EC_REVIEW : (string.Equals(input.DpsPerformer, "HOST_REQUESTER", StringComparison.OrdinalIgnoreCase) ? RequestStatus.HOST_DPS : RequestStatus.EC_DPS); Notify("HOST_FINAL_SUBMITTED", $"The host submitted visitor request {request.RequestNumber} (Batch {request.BatchId}) for compliance review.", StableGuid("prototype-export-control")); break;
             case "dps":
                 var performer = string.Equals(input.DpsPerformer, "HOST_REQUESTER", StringComparison.OrdinalIgnoreCase) ? DpsPerformedByType.HOST_REQUESTER : DpsPerformedByType.EXPORT_CONTROL; Role(performer == DpsPerformedByType.HOST_REQUESTER ? "HOST_REQUESTER" : "EXPORT_CONTROL"); State(RequestStatus.HOST_DPS, RequestStatus.EC_DPS); if (!Enum.TryParse<DpsResult>(input.DpsResult ?? input.Comment, true, out var dpsResult)) throw new ArgumentException("DPS result must be Clear, Flagged, or Rejected."); db.DPSRecords.Add(new DPSRecord { Id = Guid.NewGuid(), VisitorRequestId = id, PerformedByUserId = actor, PerformedByType = performer, Status = dpsResult == DpsResult.Flagged ? DpsStatus.InProgress : DpsStatus.Completed, Result = dpsResult, PerformedAt = now, Notes = input.DpsNotes ?? input.Reason }); request.DpsPerformedBy = performer; request.Status = dpsResult == DpsResult.Rejected ? RequestStatus.REJECTED : RequestStatus.EC_REVIEW; if (dpsResult == DpsResult.Rejected) { request.RejectionReason = input.Reason; Comment(CommentType.EC_REJECTION, input.Reason, true); } break;
-            case "ec-approve": Role("EXPORT_CONTROL"); State(RequestStatus.EC_REVIEW, RequestStatus.EC_DPS, RequestStatus.DOCUMENTATION_SUBMITTED, RequestStatus.EC_RE_REVIEW_REQUIRED, RequestStatus.RECEPTION_HOLD); db.ECReviews.Add(new ECReview { Id = Guid.NewGuid(), VisitorRequestId = id, ReviewerId = actor, Status = EcReviewStatus.Approved, Decision = EcDecision.Approve, Comments = input.Comment ?? string.Empty, ReviewedAt = now, CreatedAt = now }); request.Status = RequestStatus.APPROVED; request.ApprovedAt = now; foreach (var day in request.VisitDays.Where(day => day.Status == VisitDayStatus.RECEPTION_HOLD || day.Status == VisitDayStatus.UPCOMING)) day.Status = VisitDayStatus.UPCOMING; Notify("EC_APPROVED", "Export Control approved the visitor request.", request.RequesterId); Notify("EC_APPROVED", "An approved visitor is ready for reception.", StableGuid("prototype-reception")); break;
-            case "ec-reject": Role("EXPORT_CONTROL"); State(RequestStatus.EC_REVIEW, RequestStatus.EC_DPS, RequestStatus.DOCUMENTATION_SUBMITTED, RequestStatus.EC_RE_REVIEW_REQUIRED, RequestStatus.RECEPTION_HOLD); if (string.IsNullOrWhiteSpace(input.Reason)) throw new ArgumentException("A rejection reason is required."); db.ECReviews.Add(new ECReview { Id = Guid.NewGuid(), VisitorRequestId = id, ReviewerId = actor, Status = EcReviewStatus.Rejected, Decision = EcDecision.Reject, Comments = input.Reason, ReviewedAt = now, CreatedAt = now }); request.Status = RequestStatus.REJECTED; request.RejectionReason = input.Reason; Comment(CommentType.EC_REJECTION, input.Reason, true); Notify("EC_REJECTED", "Export Control rejected the visitor request.", request.RequesterId); break;
-            case "ec-request-documents": Role("EXPORT_CONTROL"); State(RequestStatus.EC_REVIEW, RequestStatus.EC_DPS, RequestStatus.DOCUMENTATION_SUBMITTED, RequestStatus.EC_RE_REVIEW_REQUIRED); if (string.IsNullOrWhiteSpace(input.Reason) && string.IsNullOrWhiteSpace(input.Comment)) throw new ArgumentException("Required information must be specified."); var reqText = input.Reason ?? input.Comment ?? "Additional information requested"; db.ECReviews.Add(new ECReview { Id = Guid.NewGuid(), VisitorRequestId = id, ReviewerId = actor, Status = EcReviewStatus.PendingDocumentation, Decision = EcDecision.RequestDocumentation, Comments = reqText, RequestedDocuments = reqText, CreatedAt = now }); db.Add(new AdditionalInformationRequest { Id = Guid.NewGuid(), VisitorRequestId = id, RequestedByUserId = actor, VisitorFormId = request.VisitorFormId, RequestedFields = reqText, RequestComment = reqText, Status = "PENDING", CreatedAt = now, UpdatedAt = now }); request.Status = RequestStatus.PENDING_DOCUMENTATION; Comment(CommentType.EC_REQUEST, reqText, true); Notify("ADDITIONAL_INFORMATION_REQUESTED", "Additional visitor information is required.", request.RequesterId); break;
+            case "ec-approve": Role("EXPORT_CONTROL"); State(RequestStatus.EC_REVIEW, RequestStatus.EC_DPS, RequestStatus.DOCUMENTATION_SUBMITTED, RequestStatus.EC_RE_REVIEW_REQUIRED, RequestStatus.RECEPTION_HOLD); db.ECReviews.Add(new ECReview { Id = Guid.NewGuid(), VisitorRequestId = id, ReviewerId = actor, Status = EcReviewStatus.Approved, Decision = EcDecision.Approve, Comments = input.Comment ?? string.Empty, ReviewedAt = now, CreatedAt = now }); request.Status = RequestStatus.APPROVED; request.ApprovedAt = now; foreach (var day in request.VisitDays.Where(day => day.Status == VisitDayStatus.RECEPTION_HOLD || day.Status == VisitDayStatus.UPCOMING)) day.Status = VisitDayStatus.UPCOMING; Notify("EC_APPROVED", $"Export Control approved visitor request {request.RequestNumber}.", request.RequesterId); Notify("EC_APPROVED", $"Approved visitor for Batch {request.BatchId} is ready for reception.", StableGuid("prototype-reception")); break;
+            case "ec-reject": Role("EXPORT_CONTROL"); State(RequestStatus.EC_REVIEW, RequestStatus.EC_DPS, RequestStatus.DOCUMENTATION_SUBMITTED, RequestStatus.EC_RE_REVIEW_REQUIRED, RequestStatus.RECEPTION_HOLD); if (string.IsNullOrWhiteSpace(input.Reason)) throw new ArgumentException("A rejection reason is required."); db.ECReviews.Add(new ECReview { Id = Guid.NewGuid(), VisitorRequestId = id, ReviewerId = actor, Status = EcReviewStatus.Rejected, Decision = EcDecision.Reject, Comments = input.Reason, ReviewedAt = now, CreatedAt = now }); request.Status = RequestStatus.REJECTED; request.RejectionReason = input.Reason; Comment(CommentType.EC_REJECTION, input.Reason, true); Notify("EC_REJECTED", $"Export Control rejected visitor request {request.RequestNumber}.", request.RequesterId); break;
+            case "ec-request-documents": Role("EXPORT_CONTROL"); State(RequestStatus.EC_REVIEW, RequestStatus.EC_DPS, RequestStatus.DOCUMENTATION_SUBMITTED, RequestStatus.EC_RE_REVIEW_REQUIRED); if (string.IsNullOrWhiteSpace(input.Reason) && string.IsNullOrWhiteSpace(input.Comment)) throw new ArgumentException("Required information must be specified."); var reqText = input.Reason ?? input.Comment ?? "Additional information requested"; db.ECReviews.Add(new ECReview { Id = Guid.NewGuid(), VisitorRequestId = id, ReviewerId = actor, Status = EcReviewStatus.PendingDocumentation, Decision = EcDecision.RequestDocumentation, Comments = reqText, RequestedDocuments = reqText, CreatedAt = now }); db.Add(new AdditionalInformationRequest { Id = Guid.NewGuid(), VisitorRequestId = id, RequestedByUserId = actor, VisitorFormId = request.VisitorFormId, RequestedFields = reqText, RequestComment = reqText, Status = "PENDING", CreatedAt = now, UpdatedAt = now }); request.Status = RequestStatus.PENDING_DOCUMENTATION; Comment(CommentType.EC_REQUEST, reqText, true); Notify("ADDITIONAL_INFORMATION_REQUESTED", $"Additional information required for Batch {request.BatchId}.", request.RequesterId); break;
             case "submit-additional": throw new InvalidOperationException("Submit additional information through the visitor form endpoint.");
             case "personnel-change": Role("HOST_REQUESTER"); State(RequestStatus.VISITOR_FORM_SUBMITTED, RequestStatus.HOST_REVIEW); request.Status = RequestStatus.CANCELLED_PERSONNEL_CHANGE; request.PersonnelChangeRequested = true; request.PersonnelChangeRequestedAt = now; request.CancelledAt = now; Comment(CommentType.EXCEPTION, input.Reason, true); break;
-            case "host-change": Role("HOST_REQUESTER"); if (string.IsNullOrWhiteSpace(input.NewUserId)) throw new ArgumentException("A new main host is required."); request.PreviousMainHostId = request.MainHostId; request.MainHostId = StableGuid(input.NewUserId); request.MainHostChangedAt = now; if (request.Status == RequestStatus.APPROVED) { request.Status = RequestStatus.EC_RE_REVIEW_REQUIRED; Comment(CommentType.HOST_CHANGE, input.Reason, true); Notify("MAIN_HOST_CHANGED", "Main host changed; Export Control review is required.", StableGuid("prototype-export-control")); } break;
+            case "host-change": Role("HOST_REQUESTER"); if (string.IsNullOrWhiteSpace(input.NewUserId)) throw new ArgumentException("A new main host is required."); request.PreviousMainHostId = request.MainHostId; request.MainHostId = StableGuid(input.NewUserId); request.MainHostChangedAt = now; if (request.Status == RequestStatus.APPROVED) { request.Status = RequestStatus.EC_RE_REVIEW_REQUIRED; Comment(CommentType.HOST_CHANGE, input.Reason, true); Notify("MAIN_HOST_CHANGED", $"Main host changed for Batch {request.BatchId}; Export Control review required.", StableGuid("prototype-export-control")); } break;
             case "escort-change": Role("HOST_REQUESTER"); request.EscortingHostId = string.IsNullOrWhiteSpace(input.NewUserId) ? null : StableGuid(input.NewUserId); break;
             case "verify": Role("RECEPTION"); State(RequestStatus.APPROVED); var verifyDay = Day(); if (!string.IsNullOrWhiteSpace(input.IdLast4) && input.IdLast4 != request.Visitor.IdLast4) { verifyDay.Status = VisitDayStatus.ENTRY_REJECTED; Comment(CommentType.EXCEPTION, input.Reason ?? "ID last 4 mismatch", true); request.UpdatedAt = now; break; } verifyDay.Status = VisitDayStatus.RECEPTION_VERIFICATION; break;
-            case "hold": Role("RECEPTION"); State(RequestStatus.APPROVED, RequestStatus.RECEPTION_HOLD); var holdDay = Day(); holdDay.Status = VisitDayStatus.RECEPTION_HOLD; request.Status = RequestStatus.RECEPTION_HOLD; db.Assets.Add(new Asset { Id = Guid.NewGuid(), VisitorRequestId = id, AssetType = "Undeclared asset", Description = input.Comment ?? string.Empty, SerialNumber = input.AssetSerials ?? string.Empty, IsDeclared = false, VerificationStatus = AssetVerificationStatus.Undeclared, DetectedAt = now, CreatedAt = now, UpdatedAt = now }); Comment(CommentType.UNDECLARED_ASSET, input.Comment, true); Notify("RECEPTION_HOLD", "Reception placed the visitor on hold for Export Control review.", request.RequesterId); break;
-            case "check-in": Role("RECEPTION"); State(RequestStatus.APPROVED); var checkInDay = Day(); if (checkInDay.Status != VisitDayStatus.RECEPTION_VERIFICATION && checkInDay.Status != VisitDayStatus.UPCOMING) { checkInDay.Status = VisitDayStatus.RECEPTION_VERIFICATION; } if (string.IsNullOrWhiteSpace(input.BadgeNumber)) throw new ArgumentException("Badge number is required."); var badge = new Badge { Id = Guid.NewGuid(), BadgeNumber = input.BadgeNumber.Trim(), VisitorId = request.VisitorId, VisitDayId = checkInDay.Id, IssuedByUserId = actor, IssuedAt = now, Status = BadgeStatus.Issued }; db.Badges.Add(badge); db.VisitCheckIns.Add(new VisitCheckIn { Id = Guid.NewGuid(), VisitDayId = checkInDay.Id, BadgeId = badge.Id, ReceptionUserId = actor, PhysicalIdVerified = true, AssetsVerified = true, CheckedInAt = now }); checkInDay.Status = VisitDayStatus.CHECKED_IN; checkInDay.ActualArrivalTime = now; request.Status = RequestStatus.APPROVED; Notify("CHECK_IN", "Visitor checked in at reception.", request.RequesterId); break;
-            case "check-out": Role("RECEPTION"); var checkOutDay = Day(); if (checkOutDay.Status != VisitDayStatus.CHECKED_IN) { checkOutDay.Status = VisitDayStatus.CHECKED_IN; } var issuedBadge = await db.Badges.FirstOrDefaultAsync(item => item.VisitDayId == checkOutDay.Id && item.Status == BadgeStatus.Issued, ct); if (issuedBadge != null) { issuedBadge.Status = BadgeStatus.Returned; issuedBadge.ReturnedAt = now; db.VisitCheckOuts.Add(new VisitCheckOut { Id = Guid.NewGuid(), VisitDayId = checkOutDay.Id, BadgeId = issuedBadge.Id, ReceptionUserId = actor, BadgeReturned = true, Notes = input.Comment ?? string.Empty, CheckedOutAt = now }); } checkOutDay.Status = VisitDayStatus.COMPLETED; checkOutDay.ActualDepartureTime = now; request.Status = request.VisitDays.Any(day => day.Status == VisitDayStatus.UPCOMING) ? RequestStatus.APPROVED : RequestStatus.VISIT_PROCESS_COMPLETED; Notify("CHECK_OUT", "Visitor checked out at reception.", request.RequesterId); break;
-            case "no-show": Role("RECEPTION"); var noShowDay = Day(); if (noShowDay.Status is VisitDayStatus.CHECKED_IN or VisitDayStatus.COMPLETED) throw new InvalidOperationException("A completed visit cannot be marked no-show."); noShowDay.Status = VisitDayStatus.NO_SHOW; noShowDay.NoShowMarkedAt = now; Notify("NO_SHOW", "A visitor was marked no-show for a visit day.", request.RequesterId); Notify("NO_SHOW", "A visitor was marked no-show for a visit day.", StableGuid("prototype-export-control")); break;
+            case "hold": Role("RECEPTION"); State(RequestStatus.APPROVED, RequestStatus.RECEPTION_HOLD); var holdDay = Day(); holdDay.Status = VisitDayStatus.RECEPTION_HOLD; request.Status = RequestStatus.RECEPTION_HOLD; db.Assets.Add(new Asset { Id = Guid.NewGuid(), VisitorRequestId = id, AssetType = "Undeclared asset", Description = input.Comment ?? string.Empty, SerialNumber = input.AssetSerials ?? string.Empty, IsDeclared = false, VerificationStatus = AssetVerificationStatus.Undeclared, DetectedAt = now, CreatedAt = now, UpdatedAt = now }); Comment(CommentType.UNDECLARED_ASSET, input.Comment, true); Notify("RECEPTION_HOLD", $"Reception placed Batch {request.BatchId} on hold for Export Control review.", request.RequesterId); break;
+            case "check-in": Role("RECEPTION"); State(RequestStatus.APPROVED); var checkInDay = Day(); if (checkInDay.Status != VisitDayStatus.RECEPTION_VERIFICATION && checkInDay.Status != VisitDayStatus.UPCOMING) { checkInDay.Status = VisitDayStatus.RECEPTION_VERIFICATION; } if (string.IsNullOrWhiteSpace(input.BadgeNumber)) throw new ArgumentException("Badge number is required."); var badge = new Badge { Id = Guid.NewGuid(), BadgeNumber = input.BadgeNumber.Trim(), VisitorId = request.VisitorId, VisitDayId = checkInDay.Id, IssuedByUserId = actor, IssuedAt = now, Status = BadgeStatus.Issued }; db.Badges.Add(badge); db.VisitCheckIns.Add(new VisitCheckIn { Id = Guid.NewGuid(), VisitDayId = checkInDay.Id, BadgeId = badge.Id, ReceptionUserId = actor, PhysicalIdVerified = true, AssetsVerified = true, CheckedInAt = now }); checkInDay.Status = VisitDayStatus.CHECKED_IN; checkInDay.ActualArrivalTime = now; request.Status = RequestStatus.APPROVED; Notify("CHECK_IN", $"Visitor checked in at reception (Badge {badge.BadgeNumber}, Batch {request.BatchId}).", request.RequesterId); break;
+            case "check-out": Role("RECEPTION"); var checkOutDay = Day(); if (checkOutDay.Status != VisitDayStatus.CHECKED_IN) { checkOutDay.Status = VisitDayStatus.CHECKED_IN; } var issuedBadge = await db.Badges.FirstOrDefaultAsync(item => item.VisitDayId == checkOutDay.Id && item.Status == BadgeStatus.Issued, ct); if (issuedBadge != null) { issuedBadge.Status = BadgeStatus.Returned; issuedBadge.ReturnedAt = now; db.VisitCheckOuts.Add(new VisitCheckOut { Id = Guid.NewGuid(), VisitDayId = checkOutDay.Id, BadgeId = issuedBadge.Id, ReceptionUserId = actor, BadgeReturned = true, Notes = input.Comment ?? string.Empty, CheckedOutAt = now }); } checkOutDay.Status = VisitDayStatus.COMPLETED; checkOutDay.ActualDepartureTime = now; request.Status = request.VisitDays.Any(day => day.Status == VisitDayStatus.UPCOMING) ? RequestStatus.APPROVED : RequestStatus.VISIT_PROCESS_COMPLETED; Notify("CHECK_OUT", $"Visitor checked out at reception for Batch {request.BatchId}.", request.RequesterId); break;
+            case "no-show": Role("RECEPTION"); var noShowDay = Day(); if (noShowDay.Status is VisitDayStatus.CHECKED_IN or VisitDayStatus.COMPLETED) throw new InvalidOperationException("A completed visit cannot be marked no-show."); noShowDay.Status = VisitDayStatus.NO_SHOW; noShowDay.NoShowMarkedAt = now; Notify("NO_SHOW", $"Visitor marked no-show for Batch {request.BatchId}.", request.RequesterId); Notify("NO_SHOW", $"Visitor marked no-show for Batch {request.BatchId}.", StableGuid("prototype-export-control")); break;
             default: throw new InvalidOperationException("Unknown workflow action.");
         }
-        request.UpdatedAt = now; db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), Action = action.ToUpperInvariant(), EntityType = nameof(VisitorRequest), EntityId = id, PerformedByUserId = actor, Details = $"{old} -> {request.Status}: {input.Comment ?? input.Reason}", CreatedAt = now }); await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct); return (await GetAsync(id, ct))!;
+        request.UpdatedAt = now; db.AuditLogs.Add(new AuditLog { Id = Guid.NewGuid(), Action = action.ToUpperInvariant(), EntityType = nameof(VisitorRequest), EntityId = id, PerformedByUserId = actor, Details = $"{old} -> {request.Status} (Batch {request.BatchId}): {input.Comment ?? input.Reason}", CreatedAt = now }); await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct); return (await GetAsync(id, ct))!;
     }
 
-    private async Task<string> NextRequestNumber(CancellationToken ct) { var prefix = $"RRVMS-{DateTime.UtcNow.Year}-"; var count = await db.VisitorRequests.CountAsync(r => r.RequestNumber.StartsWith(prefix), ct); return $"{prefix}{count + 1:000000}"; }
+    private async Task<(string RequestNumber, string BatchId)> NextNumbers(CancellationToken ct)
+    {
+        var year = DateTime.UtcNow.Year;
+        var prefixReq = $"RRVMS-{year}-";
+        var prefixBatch = $"BATCH-{year}-";
+        var count = await db.VisitorRequests.CountAsync(r => r.RequestNumber.StartsWith(prefixReq), ct);
+        var nextNum = count + 1;
+        return ($"{prefixReq}{nextNum:000000}", $"{prefixBatch}{nextNum:000000}");
+    }
+
     private static Guid StableGuid(string value) => new(MD5.HashData(Encoding.UTF8.GetBytes(value)));
-    private static VisitorRequestDetailDto ToDetail(VisitorRequest r, string mainHostName, string? escortHostName, IReadOnlyList<AuditDto> audit, IReadOnlyList<VisitorFormVersionDto> versions, IReadOnlyList<PreviousRequestDto> previousRequests, IReadOnlyList<PreviousVisitDayDto> previousVisitDays) => new(r.Id, r.RequestNumber, new VisitorDto(r.Visitor.Id, r.Visitor.FullName, r.Visitor.CompanyName, r.Visitor.Citizenship, r.Visitor.Nationality, r.Visitor.Country, r.Visitor.Designation, r.Visitor.Email, r.Visitor.Phone, r.Visitor.IdType, r.Visitor.IdLast4, r.Visitor.VisitorType.ToString()), r.Purpose, r.AreasToVisit, r.VisitingCompany, r.VisitingSite, r.VisitPurposeType, mainHostName, escortHostName, r.Status.ToString(), r.VisitDays.Select(d => new VisitDayDto(d.Id, d.VisitDate, d.ExpectedArrivalTime, d.ExpectedDepartureTime, d.Status.ToString(), d.ActualArrivalTime, d.ActualDepartureTime)).ToList(), r.Assets.Select(a => new AssetDto(a.Id, a.AssetType, a.Description, a.SerialNumber, a.IsDeclared, a.IsVerified, a.VerificationStatus.ToString())).ToList(), audit, r.VisitorFormId, r.VisitorForms.Select(form => form.Id).ToList(), r.VisitorForms.Select(form => new VisitorFormSummaryDto(form.Id, form.Status, form.FullName)).ToList(), r.DpsRecords.OrderByDescending(d => d.PerformedAt).Select(d => new DpsDto(d.Id, d.PerformedByType.ToString(), d.Status.ToString(), d.Result.ToString(), d.Notes, d.PerformedAt)).ToList(), r.EcReviews.OrderByDescending(review => review.CreatedAt).Select(review => new EcReviewDto(review.Id, review.ReviewerId, review.Status.ToString(), review.Decision.ToString(), review.Comments, review.ReviewedAt)).ToList(), r.Comments.OrderBy(comment => comment.CreatedAt).Select(comment => new CommentDto(comment.Id, comment.AuthorUserId, comment.CommentType.ToString(), comment.CommentText, comment.CreatedAt)).ToList(), r.InformationRequests.OrderBy(info => info.CreatedAt).Select(info => new InformationRequestDto(info.Id, info.RequestedFields, info.RequestComment, info.Status, info.CreatedAt, info.RespondedAt, info.ResponseSummary)).ToList(), r.AttendanceRecords.Select(record => new AttendanceDto(record.Id, record.VisitDayId, record.Category.ToString(), record.Completed, record.MarkedByUserId, record.MarkedAt, record.Comments)).ToList(), versions, previousRequests, previousVisitDays);
+
+    private static VisitorRequestDetailDto ToDetail(
+        VisitorRequest r,
+        string mainHostName,
+        string? escortHostName,
+        IReadOnlyList<AuditDto> audit,
+        IReadOnlyList<VisitorFormVersionDto> versions,
+        IReadOnlyList<PreviousRequestDto> previousRequests,
+        IReadOnlyList<PreviousVisitDayDto> previousVisitDays,
+        string userRole)
+    {
+        var isReception = string.Equals(userRole, "RECEPTION", StringComparison.OrdinalIgnoreCase);
+
+        var finalAudit = isReception ? Array.Empty<AuditDto>() : audit;
+        var finalVersions = isReception ? Array.Empty<VisitorFormVersionDto>() : versions;
+        var finalPrevRequests = isReception ? Array.Empty<PreviousRequestDto>() : previousRequests;
+        var finalPrevVisitDays = isReception ? Array.Empty<PreviousVisitDayDto>() : previousVisitDays;
+        IReadOnlyList<InformationRequestDto> finalInfoReqs = isReception ? Array.Empty<InformationRequestDto>() : r.InformationRequests.OrderBy(info => info.CreatedAt).Select(info => new InformationRequestDto(info.Id, info.RequestedFields, info.RequestComment, info.Status, info.CreatedAt, info.RespondedAt, info.ResponseSummary)).ToList();
+        IReadOnlyList<EcReviewDto> finalEcReviews = isReception ? Array.Empty<EcReviewDto>() : r.EcReviews.OrderByDescending(review => review.CreatedAt).Select(review => new EcReviewDto(review.Id, review.ReviewerId, review.Status.ToString(), review.Decision.ToString(), review.Comments, review.ReviewedAt)).ToList();
+
+        var finalComments = isReception
+            ? r.Comments.Where(c => c.CommentType == CommentType.UNDECLARED_ASSET || c.CommentType == CommentType.EXCEPTION || c.CommentType == CommentType.HOST_CHANGE)
+                .OrderBy(comment => comment.CreatedAt)
+                .Select(comment => new CommentDto(comment.Id, comment.AuthorUserId, comment.CommentType.ToString(), comment.CommentText, comment.CreatedAt)).ToList()
+            : r.Comments.OrderBy(comment => comment.CreatedAt)
+                .Select(comment => new CommentDto(comment.Id, comment.AuthorUserId, comment.CommentType.ToString(), comment.CommentText, comment.CreatedAt)).ToList();
+
+        var batchId = string.IsNullOrWhiteSpace(r.BatchId) ? $"BATCH-2026-{r.RequestNumber.Replace("RRVMS-2026-", "")}" : r.BatchId;
+        var visitorDto = r.Visitor != null
+            ? new VisitorDto(r.Visitor.Id, r.Visitor.FullName ?? "Visitor form pending", r.Visitor.CompanyName ?? r.VisitingCompany, r.Visitor.Citizenship ?? string.Empty, r.Visitor.Nationality ?? string.Empty, r.Visitor.Country ?? string.Empty, r.Visitor.Designation ?? string.Empty, r.Visitor.Email ?? string.Empty, r.Visitor.Phone ?? string.Empty, r.Visitor.IdType ?? string.Empty, r.Visitor.IdLast4 ?? string.Empty, r.Visitor.VisitorType.ToString())
+            : new VisitorDto(Guid.Empty, "Visitor form pending", r.VisitingCompany, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, r.VisitorType.ToString());
+
+        return new VisitorRequestDetailDto(
+            r.Id,
+            r.RequestNumber,
+            batchId,
+            visitorDto,
+            r.Purpose,
+            r.AreasToVisit,
+            r.VisitingCompany,
+            r.VisitingSite,
+            r.VisitPurposeType,
+            mainHostName,
+            escortHostName,
+            r.Status.ToString(),
+            r.VisitDays.Select(d => new VisitDayDto(d.Id, d.VisitDate, d.ExpectedArrivalTime, d.ExpectedDepartureTime, d.Status.ToString(), d.ActualArrivalTime, d.ActualDepartureTime)).ToList(),
+            r.Assets.Select(a => new AssetDto(a.Id, a.AssetType, a.Description, a.SerialNumber, a.IsDeclared, a.IsVerified, a.VerificationStatus.ToString())).ToList(),
+            finalAudit,
+            r.VisitorFormId,
+            r.VisitorForms.Select(form => form.Id).ToList(),
+            r.VisitorForms.Select(form => new VisitorFormSummaryDto(form.Id, form.Status, form.FullName)).ToList(),
+            r.DpsRecords.OrderByDescending(d => d.PerformedAt).Select(d => new DpsDto(d.Id, d.PerformedByType.ToString(), d.Status.ToString(), d.Result.ToString(), d.Notes, d.PerformedAt)).ToList(),
+            finalEcReviews,
+            finalComments,
+            finalInfoReqs,
+            r.AttendanceRecords.Select(record => new AttendanceDto(record.Id, record.VisitDayId, record.Category.ToString(), record.Completed, record.MarkedByUserId, record.MarkedAt, record.Comments)).ToList(),
+            finalVersions,
+            finalPrevRequests,
+            finalPrevVisitDays
+        );
+    }
 }

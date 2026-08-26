@@ -59,9 +59,6 @@ public sealed class SubmitVisitorFormDto
     [Required, StringLength(40)] public string Telephone { get; init; } = string.Empty;
     [Required, StringLength(40)] public string IdType { get; init; } = string.Empty;
     [Required, RegularExpression("^[0-9]{4}$")] public string IdLast4 { get; init; } = string.Empty;
-    [StringLength(120)] public string PassportNumber { get; init; } = string.Empty;
-    [StringLength(120)] public string VisaNumber { get; init; } = string.Empty;
-    [StringLength(120)] public string GovernmentIdNumber { get; init; } = string.Empty;
     public List<VisitorAssetDto> Assets { get; init; } = [];
 }
 
@@ -75,6 +72,7 @@ public sealed class VisitorAssetDto
 public sealed record VisitorRequestListItemDto(
     Guid Id,
     string RequestNumber,
+    string BatchId,
     string VisitorName,
     string CompanyName,
     string CurrentStatus,
@@ -92,6 +90,7 @@ public sealed record PreviousVisitDayDto(Guid Id, string RequestNumber, DateOnly
 public sealed record VisitorRequestDetailDto(
     Guid Id,
     string RequestNumber,
+    string BatchId,
     VisitorDto Visitor,
     string Purpose,
     string AreasToVisit,

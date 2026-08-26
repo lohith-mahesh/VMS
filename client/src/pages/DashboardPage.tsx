@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getDashboard, getEcDashboard, type DashboardResponse, type EcDashboardResponse } from '../services/apiClient'
 import { useAuth } from '../auth/useAuth'
 import { userFacingApiError } from '../utils/logger'
+import { formatStatus } from '../utils/formatters'
 
 export function DashboardPage() {
   const { user } = useAuth()
@@ -74,6 +75,7 @@ export function DashboardPage() {
                 <table className="min-w-full text-left text-sm">
                   <thead>
                     <tr className="border-b border-[var(--silver)] text-xs uppercase tracking-wider text-[var(--muted)]">
+                      <th className="p-3">Batch ID</th>
                       <th className="p-3">Request Number</th>
                       <th className="p-3">Visitor Full Name</th>
                       <th className="p-3">Company</th>
@@ -87,6 +89,7 @@ export function DashboardPage() {
                   <tbody className="divide-y divide-[var(--silver)]">
                     {ecDashboard.pendingEcReviewsItems.map((item) => (
                       <tr key={item.id} className="hover:bg-[var(--surface)]">
+                        <td className="p-3 font-bold text-[var(--royal-blue)]">{item.batchId || '-'}</td>
                         <td className="p-3 font-semibold text-[var(--royal-blue)]">{item.requestNumber}</td>
                         <td className="p-3 font-medium text-[var(--ink)]">{item.visitorName || 'Adam Gilchrist'}</td>
                         <td className="p-3 text-[var(--muted)]">{item.companyName}</td>
@@ -97,13 +100,13 @@ export function DashboardPage() {
                           </span>
                         </td>
                         <td className="p-3 text-xs text-[var(--muted)]">{item.currentStage || 'Export Control Review'}</td>
-                        <td className="p-3 text-xs font-semibold text-[var(--royal-blue)]">{item.currentStatus}</td>
+                        <td className="p-3 text-xs font-semibold text-[var(--royal-blue)]">{formatStatus(item.currentStatus)}</td>
                         <td className="p-3">
                           <Link
                             to={`/visitor-requests/${item.id}`}
-                            className="inline-block rounded bg-[var(--royal-blue)] px-3 py-1 text-xs font-semibold text-white hover:bg-[var(--rr-primary)]"
+                            className="cursor-pointer rounded bg-[var(--royal-blue)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--rr-primary)]"
                           >
-                            Open Details
+                            Review Details
                           </Link>
                         </td>
                       </tr>
@@ -115,36 +118,68 @@ export function DashboardPage() {
           </section>
         </div>
       ) : dashboard ? (
-        <>
+        <div className="space-y-6">
           <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Metric label="Total requests" value={dashboard.totalRequests} />
-            <Metric label="Pending actions" value={dashboard.pendingActions} />
-            <Metric label="Today's visits" value={dashboard.todaysVisits} />
-            <Metric label="Currently inside" value={dashboard.currentlyInside} />
+            <Metric label="Total Requests" value={dashboard.totalRequests} />
+            <Metric label="Pending Actions" value={dashboard.pendingActions} />
+            <Metric label="Today's Visits" value={dashboard.todaysVisits} />
+            <Metric label="Currently Inside" value={dashboard.currentlyInside} />
+            <Metric label="Upcoming Visits" value={dashboard.upcomingVisits} />
+            <Metric label="No Shows" value={dashboard.noShows} />
+            <Metric label="Pending EC Reviews" value={dashboard.pendingEcReviews} />
+            <Metric label="Pending Documentation" value={dashboard.pendingDocumentation} />
           </section>
 
           <section className="border border-[var(--silver)] bg-white p-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="display text-xl font-bold text-[var(--royal-blue)]">Recent requests</h2>
-              <Link to="/visitor-requests" className="text-sm font-semibold text-[var(--royal-blue)]">View all</Link>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--silver)] pb-4">
+              <h2 className="display text-xl font-bold text-[var(--royal-blue)]">Recent Requests</h2>
+              <Link to="/visitor-requests" className="text-xs font-semibold uppercase tracking-wider text-[var(--royal-blue)] hover:underline">
+                View all -&gt;
+              </Link>
             </div>
+
             {dashboard.recentRequests.length === 0 ? (
-              <p className="mt-5 text-sm text-[var(--muted)]">No visitor activity yet.</p>
+              <p className="mt-5 text-sm text-[var(--muted)]">No recent visitor requests found.</p>
             ) : (
-              <div className="mt-4 divide-y divide-[var(--silver)]">
-                {dashboard.recentRequests.map((request) => (
-                  <Link key={request.id} to={`/visitor-requests/${request.id}`} className="flex flex-wrap justify-between gap-2 py-3 text-sm">
-                    <span>
-                      <strong className="text-[var(--royal-blue)]">{request.requestNumber}</strong>
-                      <span className="ml-3 text-[var(--ink)]">{request.visitorName}</span>
-                    </span>
-                    <span className="text-[var(--muted)]">{request.currentStatus}</span>
-                  </Link>
-                ))}
+              <div className="mt-4 overflow-x-auto">
+                <table className="min-w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--silver)] text-xs uppercase tracking-wider text-[var(--muted)]">
+                      <th className="p-3">Batch ID</th>
+                      <th className="p-3">Request Number</th>
+                      <th className="p-3">Visitor Name</th>
+                      <th className="p-3">Company</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3">Created</th>
+                      <th className="p-3">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--silver)]">
+                    {dashboard.recentRequests.map((item) => (
+                      <tr key={item.id} className="hover:bg-[var(--surface)]">
+                        <td className="p-3 font-bold text-[var(--royal-blue)]">{item.batchId || '-'}</td>
+                        <td className="p-3 font-semibold text-[var(--royal-blue)]">{item.requestNumber}</td>
+                        <td className="p-3 font-medium text-[var(--ink)]">{item.visitorName || 'Adam Gilchrist'}</td>
+                        <td className="p-3 text-[var(--muted)]">{item.companyName}</td>
+                        <td className="p-3">
+                          <span className="rounded bg-[#e9eef6] px-2.5 py-1 text-xs font-semibold text-[var(--royal-blue)]">
+                            {formatStatus(item.currentStatus)}
+                          </span>
+                        </td>
+                        <td className="p-3 text-xs text-[var(--muted)]">{new Date(item.createdAt).toLocaleDateString()}</td>
+                        <td className="p-3">
+                          <Link to={`/visitor-requests/${item.id}`} className="font-semibold text-[var(--royal-blue)] hover:underline cursor-pointer">
+                            Open
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </section>
-        </>
+        </div>
       ) : null}
     </div>
   )
@@ -152,9 +187,9 @@ export function DashboardPage() {
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="border border-[var(--silver)] bg-white p-5">
-      <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</p>
-      <p className="mt-3 text-3xl font-semibold text-[var(--royal-blue)]">{value}</p>
+    <div className="border border-[var(--silver)] bg-white p-4">
+      <p className="text-xs font-semibold uppercase text-[var(--muted)]">{label}</p>
+      <p className="display mt-2 text-3xl font-bold text-[var(--royal-blue)]">{value}</p>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { countries } from '../data/countries'
 import { getVisitorForm, submitAdditionalVisitorForm, submitVisitorForm, type SubmitVisitorForm, type VisitorForm } from '../services/apiClient'
 import { userFacingApiError } from '../utils/logger'
+import { formatStatus } from '../utils/formatters'
 
 const blankSubmission: SubmitVisitorForm = {
   fullName: '',
@@ -17,9 +18,6 @@ const blankSubmission: SubmitVisitorForm = {
   email: '',
   idType: 'Passport',
   idLast4: '',
-  passportNumber: '',
-  visaNumber: '',
-  governmentIdNumber: '',
   assets: [],
 }
 
@@ -54,9 +52,6 @@ export function VisitorFormPage() {
           email: result.email,
           idType: result.idType || 'Passport',
           idLast4: result.idLast4,
-          passportNumber: '',
-          visaNumber: '',
-          governmentIdNumber: '',
           assets: result.assets,
         })
       })
@@ -77,7 +72,7 @@ export function VisitorFormPage() {
     if (!form.citizenship) errors.citizenship = 'Citizenship is required.'
     if (!form.nationality) errors.nationality = 'Nationality is required.'
     if (!form.officeCountry) errors.officeCountry = 'Office country is required.'
-    if (!/^\d{4}$/.test(form.idLast4)) errors.idLast4 = 'ID last 4 must contain exactly four digits.'
+    if (!/^\d{4}$/.test(form.idLast4)) errors.idLast4 = 'ID last 4 must contain exactly four numeric digits.'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -110,7 +105,7 @@ export function VisitorFormPage() {
       <header>
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">RRVMS visitor form</p>
         <h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">Visitor information</h1>
-        {formInfo && <p className="mt-2 text-sm text-[var(--muted)]">{formInfo.requestNumber} — {formInfo.status}</p>}
+        {formInfo && <p className="mt-2 text-sm text-[var(--muted)]">{formInfo.requestNumber} — {formatStatus(formInfo.status)}</p>}
       </header>
 
       {error && <p role="alert" className="border border-[#e1b5b5] bg-[#fff4f4] p-4 text-sm text-[#9b2c2c]">{error}</p>}
@@ -128,12 +123,10 @@ export function VisitorFormPage() {
         <Field label="Email" type="email" value={form.email} onChange={value => update('email', value)} required />
       </section>
 
+      {/* Identity document section: SINGLE SELECT ID TYPE + SINGLE 4-DIGIT LAST 4 INPUT ONLY */}
       <section className="grid gap-4 border border-[var(--silver)] bg-white p-6 sm:grid-cols-2">
-        <Select label="ID type" value={form.idType} onChange={value => update('idType', value)} options={['Passport', 'Visa', 'Government ID', 'Other valid ID proof']} />
+        <Select label="ID type" value={form.idType} onChange={value => update('idType', value)} options={['Passport', 'Visa', 'Government ID', 'Other Valid ID']} />
         <Field label="ID last 4 digits" error={fieldErrors.idLast4} value={form.idLast4} onChange={value => update('idLast4', value.replace(/\D/g, '').slice(0, 4))} required />
-        <Field label="Passport number" value={form.passportNumber} onChange={value => update('passportNumber', value)} />
-        <Field label="Visa number" value={form.visaNumber} onChange={value => update('visaNumber', value)} />
-        <Field label="Government ID number" value={form.governmentIdNumber} onChange={value => update('governmentIdNumber', value)} />
       </section>
 
       <section className="border border-[var(--silver)] bg-white p-6">
