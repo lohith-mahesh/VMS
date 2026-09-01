@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { mockUsers, type MockUser } from './roles'
 import { AuthContext } from './context'
 
-const sessionKey = 'rrvms.mock.session'
+const sessionKey = 'visitor.mock.session'
 
 function readSession(): MockUser | null { const id = localStorage.getItem(sessionKey); return mockUsers.find((user) => user.id === id) ?? null }
 

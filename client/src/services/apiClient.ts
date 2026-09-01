@@ -5,13 +5,13 @@ const isProd = import.meta.env.PROD
 const rawEnvUrl = import.meta.env.VITE_API_BASE_URL
 
 if (isProd && !rawEnvUrl) {
-  console.error('[RRVMS CONFIG ERROR] VITE_API_BASE_URL is not set in Vercel environment variables for production build!')
+  console.warn('[App config] VITE_API_BASE_URL is not set; using the current deployment origin or localhost during local development.')
 }
 
 const configuredBaseUrl = rawEnvUrl
   ? rawEnvUrl
   : isProd
-    ? ''
+    ? window.location.origin
     : 'http://localhost:5000'
 
 export const apiBaseUrl = configuredBaseUrl ? configuredBaseUrl.replace(/\/+$/, '') : ''
@@ -22,15 +22,15 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config) => {
-  const userId = localStorage.getItem('rrvms.mock.session')
-  if (userId) config.headers['X-RRVMS-Prototype-User'] = userId
+  const userId = localStorage.getItem('visitor.mock.session')
+  if (userId) config.headers['X-Visitor-Prototype-User'] = userId
   return config
 })
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error(
-      `[RRVMS API ERROR]\nURL: ${(error.config?.baseURL ?? '') + (error.config?.url ?? '')}\nMETHOD: ${error.config?.method?.toUpperCase() ?? 'UNKNOWN'}\nSTATUS: ${error.response?.status ?? 'NO_RESPONSE'}\nRESPONSE:`,
+      `[API ERROR]\nURL: ${(error.config?.baseURL ?? '') + (error.config?.url ?? '')}\nMETHOD: ${error.config?.method?.toUpperCase() ?? 'UNKNOWN'}\nSTATUS: ${error.response?.status ?? 'NO_RESPONSE'}\nRESPONSE:`,
       error.response?.data ?? error.message
     )
     logger.error('API request failed', {
@@ -118,12 +118,11 @@ export type FormVersionItem = {
   version: number
   fullName: string
   citizenship: string
-  nationality: string
   country: string
   company: string
   designation: string
   idType: string
-  idLast4: string
+  otherIdType?: string
   assets: string
   createdAt: string
 }
@@ -147,18 +146,18 @@ export type VisitorRequestDetail = {
     fullName: string
     companyName: string
     citizenship: string
-    nationality: string
     country: string
     designation: string
     email: string
     phone: string
     idType: string
-    idLast4: string
+    otherIdType?: string
     visitorType: string
   }
   purpose: string
   areasToVisit?: string
   visitingCompany: string
+  visitingCompanyAddressCountry?: string
   visitingSite: string
   visitPurposeType: string
   mainHostName?: string
@@ -183,9 +182,10 @@ export type VisitorRequestDetail = {
 export type CreateVisitorRequest = {
   visitorType: 'Internal' | 'External'
   visitingCompany: string
-  visitingSite: string
+  visitingCompanyAddressCountry: string
+  visitingSite: 'Bangalore' | 'Delhi' | ''
   areasToVisit: string
-  siteTimezone: string
+  siteTimezone: 'Asia/Kolkata'
   numberOfVisitors: number
   purpose: string
   visitPurposeType: 'Technical' | 'Non-Technical' | 'Other'
@@ -241,7 +241,7 @@ export type ReceptionVisitor = {
   visitorName: string
   company: string
   idType?: string
-  idLast4?: string
+  otherIdType?: string
   assets?: Array<{ id: string; assetType: string; description: string; serialNumber: string; verificationStatus: string }>
 }
 
@@ -283,13 +283,17 @@ export type WorkflowAction = {
   reason?: string
   visitDayId?: string
   badgeNumber?: string
-  idLast4?: string
+  badgeColor?: 'Orange' | 'Red'
   idType?: string
+  otherIdType?: string
   assetSerials?: string
   dpsPerformer?: string
   dpsResult?: string
   dpsNotes?: string
   newUserId?: string
+  identityVerified?: boolean
+  assetsVerified?: boolean
+  receptionDecision?: 'CHECK_IN' | 'CHECK_OUT'
 }
 export async function executeVisitorRequestAction(id: string, action: WorkflowAction) {
   return (await apiClient.post<VisitorRequestDetail>(`/api/visitor-requests/${id}/actions`, action)).data
@@ -328,7 +332,6 @@ export type VisitorForm = {
   status: string
   fullName: string
   citizenship: string
-  nationality: string
   country: string
   designation: string
   companyName: string
@@ -337,7 +340,7 @@ export type VisitorForm = {
   telephone: string
   email: string
   idType: string
-  idLast4: string
+  otherIdType?: string
   assets: Array<{ assetType: string; description: string; serialNumber: string }>
 }
 export type SubmitVisitorForm = Omit<VisitorForm, 'id' | 'visitorRequestId' | 'requestNumber' | 'status'>

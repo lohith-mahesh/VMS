@@ -4,9 +4,9 @@ export type Role = (typeof roles)[number]
 export type MockUser = { id: string; name: string; email: string; role: Role; initials: string }
 
 export const mockUsers: MockUser[] = [
-  { id: 'prototype-host-requester', name: 'Alex Morgan', email: 'alex.morgan@rolls-royce.com', role: 'HOST_REQUESTER', initials: 'AM' },
-  { id: 'prototype-export-control', name: 'Priya Shah', email: 'priya.shah@rolls-royce.com', role: 'EXPORT_CONTROL', initials: 'PS' },
-  { id: 'prototype-reception', name: 'Michael Brown', email: 'michael.brown@rolls-royce.com', role: 'RECEPTION', initials: 'MB' },
+  { id: 'prototype-host-requester', name: 'Alex Morgan', email: 'alex.morgan@demo.local', role: 'HOST_REQUESTER', initials: 'AM' },
+  { id: 'prototype-export-control', name: 'Priya Shah', email: 'priya.shah@demo.local', role: 'EXPORT_CONTROL', initials: 'PS' },
+  { id: 'prototype-reception', name: 'Michael Brown', email: 'michael.brown@demo.local', role: 'RECEPTION', initials: 'MB' },
 ]
 
 export const navigationByRole: Record<Role, Array<{ label: string; path: string; group: 'Workspace' | 'Governance' | 'Account' }>> = {

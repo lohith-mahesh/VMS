@@ -77,13 +77,11 @@ public sealed class Visitor
     public string FullName { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
     public string Citizenship { get; set; } = string.Empty;
-    public string Nationality { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string IdType { get; set; } = string.Empty;
-    public string IdLast4 { get; set; } = string.Empty;
     public VisitorType VisitorType { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
@@ -116,11 +114,13 @@ public sealed class VisitorRequest
     // BASIC VISIT DETAILS (entered by Host/Requester at creation)
     public VisitorType VisitorType { get; set; }
     public string VisitingCompany { get; set; } = string.Empty;
+    public string VisitingCompanyAddressCountry { get; set; } = string.Empty;
     public string VisitingSite { get; set; } = string.Empty;
     public string VisitPurposeType { get; set; } = string.Empty; // Technical, Non-Technical, Other
     public string Purpose { get; set; } = string.Empty;
     public string AreasToVisit { get; set; } = string.Empty;
-    public string SiteTimezone { get; set; } = string.Empty;
+    public string SiteTimezone { get; set; } = "Asia/Kolkata";
+    public string? BadgeColor { get; set; }
     public int NumberOfVisitors { get; set; }
     
     // VISITOR FORM
@@ -304,7 +304,6 @@ public sealed class VisitorForm
     public Guid VisitorId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string Citizenship { get; set; } = string.Empty;
-    public string Nationality { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
@@ -313,7 +312,7 @@ public sealed class VisitorForm
     public string Telephone { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string IdType { get; set; } = string.Empty;
-    public string IdLast4 { get; set; } = string.Empty;
+    public string OtherIdType { get; set; } = string.Empty;
     public string DeclaredAssets { get; set; } = string.Empty;
     
     // STATUS TRACKING
@@ -335,7 +334,6 @@ public sealed class VisitorFormVersion
     public int Version { get; set; }
     public string FullNameSnapshot { get; set; } = string.Empty;
     public string CitizenshipSnapshot { get; set; } = string.Empty;
-    public string NationalitySnapshot { get; set; } = string.Empty;
     public string CountrySnapshot { get; set; } = string.Empty;
     public string CompanySnapshot { get; set; } = string.Empty;
     public string OfficeCitySnapshot { get; set; } = string.Empty;
@@ -344,7 +342,7 @@ public sealed class VisitorFormVersion
     public string PhoneSnapshot { get; set; } = string.Empty;
     public string EmailSnapshot { get; set; } = string.Empty;
     public string IdTypeSnapshot { get; set; } = string.Empty;
-    public string IdLast4Snapshot { get; set; } = string.Empty;
+    public string OtherIdTypeSnapshot { get; set; } = string.Empty;
     public string AssetsSnapshot { get; set; } = string.Empty;
     public DateTimeOffset CreatedAt { get; set; }
 }

@@ -1,5 +1,4 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { RRLogo } from '../components/common/RRLogo'
 
 export function BaseLayout() {
   return (
@@ -7,12 +6,12 @@ export function BaseLayout() {
       <header className="border-b border-[var(--silver)] bg-[var(--white)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <NavLink to="/" className="flex items-center gap-3 text-[var(--royal-blue)]">
-            <RRLogo size="small" ariaLabel="RRVMS" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--royal-blue)] text-sm font-bold text-white">VM</div>
             <span className="display text-xl font-bold tracking-wide">Visitor Management</span>
           </NavLink>
           <div className="text-right text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
-            <div>RRVMS</div>
-            <div className="mt-1 tracking-normal">Prototype environment</div>
+            <div>Operations</div>
+            <div className="mt-1 tracking-normal">Secure access portal</div>
           </div>
         </div>
       </header>
@@ -22,7 +21,7 @@ export function BaseLayout() {
         </div>
       </nav>
       <main className="mx-auto max-w-7xl px-6 py-10"><Outlet /></main>
-      <footer className="border-t border-[var(--silver)] bg-[var(--white)] px-6 py-5 text-center text-xs text-[var(--muted)]">Rolls-Royce Visitor Management System</footer>
+      <footer className="border-t border-[var(--silver)] bg-[var(--white)] px-6 py-5 text-center text-xs text-[var(--muted)]">Visitor Management System</footer>
     </div>
   )
 }

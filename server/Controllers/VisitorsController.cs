@@ -35,13 +35,11 @@ public sealed class VisitorsController(RrvmsDbContext dbContext) : ControllerBas
             fullName = visitor.FullName,
             companyName = visitor.CompanyName,
             citizenship = visitor.Citizenship,
-            nationality = visitor.Nationality,
             country = visitor.Country,
             designation = visitor.Designation,
             email = visitor.Email,
             phone = visitor.Phone,
             idType = visitor.IdType,
-            idLast4 = visitor.IdLast4,
             visitorType = visitor.VisitorType.ToString(),
             previousRequests,
             previousVisitDays

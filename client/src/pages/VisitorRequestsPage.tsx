@@ -16,7 +16,7 @@ export function VisitorRequestsPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Workspace</p>
           <h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">Visitor requests</h1>
-          <p className="mt-2 text-sm text-[var(--muted)]">Requests persisted in the RRVMS database.</p>
+          <p className="mt-2 text-sm text-[var(--muted)]">Requests persisted in the visitor management database.</p>
         </div>
         <Link to="/visitor-requests/new" className="rounded-[4px] bg-[var(--royal-blue)] px-4 py-2.5 text-sm font-semibold text-white">Create visitor request</Link>
       </header>

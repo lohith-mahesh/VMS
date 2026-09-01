@@ -36,7 +36,7 @@ export function DashboardPage() {
   return (
     <div className="space-y-7">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">RRVMS workspace</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Visitor management workspace</p>
         <h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">Good morning, {user?.name.split(' ')[0]}</h1>
         <p className="mt-2 text-sm text-[var(--muted)]">Live visitor request activity from the API.</p>
       </header>

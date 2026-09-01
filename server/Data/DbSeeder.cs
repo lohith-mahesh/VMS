@@ -62,9 +62,9 @@ public static class DbSeeder
         var hostUser = new User
         {
             Id = StableGuid("prototype-host-requester"),
-            EmployeeNumber = "RR-01001",
+            EmployeeNumber = "EMP-01001",
             FullName = "Alex Morgan",
-            Email = "alex.morgan@rolls-royce.com",
+            Email = "alex.morgan@demo.local",
             Role = UserRole.HOST_REQUESTER,
             IsActive = true,
             CreatedAt = now,
@@ -74,9 +74,9 @@ public static class DbSeeder
         var ecUser = new User
         {
             Id = StableGuid("prototype-export-control"),
-            EmployeeNumber = "RR-02002",
+            EmployeeNumber = "EMP-02002",
             FullName = "Priya Shah",
-            Email = "priya.shah@rolls-royce.com",
+            Email = "priya.shah@demo.local",
             Role = UserRole.EXPORT_CONTROL,
             IsActive = true,
             CreatedAt = now,
@@ -86,9 +86,9 @@ public static class DbSeeder
         var receptionUser = new User
         {
             Id = StableGuid("prototype-reception"),
-            EmployeeNumber = "RR-03003",
+            EmployeeNumber = "EMP-03003",
             FullName = "Michael Brown",
-            Email = "michael.brown@rolls-royce.com",
+            Email = "michael.brown@demo.local",
             Role = UserRole.RECEPTION,
             IsActive = true,
             CreatedAt = now,
@@ -98,9 +98,9 @@ public static class DbSeeder
         var escortUser = new User
         {
             Id = StableGuid("prototype-escort-host"),
-            EmployeeNumber = "RR-04004",
+            EmployeeNumber = "EMP-04004",
             FullName = "Sarah Jenkins",
-            Email = "sarah.jenkins@rolls-royce.com",
+            Email = "sarah.jenkins@demo.local",
             Role = UserRole.HOST_REQUESTER,
             IsActive = true,
             CreatedAt = now,
@@ -127,13 +127,11 @@ public static class DbSeeder
                 FullName = "Adam Gilchrist",
                 CompanyName = "Demo Aerospace Engineering Ltd.",
                 Citizenship = "Australian",
-                Nationality = "Australian",
                 Country = "Australia",
                 Designation = "Senior Technical Consultant",
                 Email = "adam.gilchrist.demo@example.com",
                 Phone = "+61 400 000 000",
                 IdType = "Passport",
-                IdLast4 = "4821",
                 VisitorType = VisitorType.External,
                 CreatedAt = now.AddDays(-30),
                 UpdatedAt = now
@@ -296,7 +294,6 @@ public static class DbSeeder
             VisitorId = visitor.Id,
             FullName = "Adam Gilchrist",
             Citizenship = "Australian",
-            Nationality = "Australian",
             Country = "Australia",
             Designation = "Senior Technical Consultant",
             CompanyName = "Demo Aerospace Engineering Ltd.",
@@ -305,7 +302,6 @@ public static class DbSeeder
             Telephone = "+61 400 000 000",
             Email = "adam.gilchrist.demo@example.com",
             IdType = "Passport",
-            IdLast4 = "4821",
             DeclaredAssets = "Laptop (DEMO-LAP-001), External Drive (DEMO-DRV-001)",
             Status = "SUBMITTED",
             SubmittedAt = now.AddHours(-5),
@@ -324,7 +320,6 @@ public static class DbSeeder
             Version = 1,
             FullNameSnapshot = "Adam Gilchrist",
             CitizenshipSnapshot = "Australian",
-            NationalitySnapshot = "Australian",
             CountrySnapshot = "Australia",
             CompanySnapshot = "Demo Aerospace Engineering Ltd.",
             OfficeCitySnapshot = "Sydney",
@@ -333,7 +328,6 @@ public static class DbSeeder
             PhoneSnapshot = "+61 400 000 000",
             EmailSnapshot = "adam.gilchrist.demo@example.com",
             IdTypeSnapshot = "Passport",
-            IdLast4Snapshot = "4821",
             AssetsSnapshot = "[{\"AssetType\":\"Laptop\",\"Description\":\"Dell Precision Workstation\",\"SerialNumber\":\"DEMO-LAP-001\"},{\"AssetType\":\"External Drive\",\"Description\":\"Encrypted SSD 1TB\",\"SerialNumber\":\"DEMO-DRV-001\"}]",
             CreatedAt = now.AddHours(-5)
         };

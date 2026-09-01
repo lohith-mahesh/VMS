@@ -20,7 +20,7 @@ export function VisitorRequestDetailPage() {
   const [infoComment, setInfoComment] = useState('Please confirm the visitor\'s full legal name and designation as shown on the identity document.')
   const [rejectReason, setRejectReason] = useState('Insufficient identity verification documentation provided.')
   const [verifyIdType, setVerifyIdType] = useState('Passport')
-  const [verifyIdLast4, setVerifyIdLast4] = useState('4821')
+  const [verifyOtherIdType, setVerifyOtherIdType] = useState('')
   const [badgeNumber, setBadgeNumber] = useState('B-101')
   const [holdComment, setHoldComment] = useState('Undeclared asset detected during reception screening.')
 
@@ -29,7 +29,7 @@ export function VisitorRequestDetailPage() {
       const data = await getVisitorRequest(id)
       setRequest(data)
       setVerifyIdType(data.visitor.idType || 'Passport')
-      setVerifyIdLast4(data.visitor.idLast4 || '4821')
+      setVerifyOtherIdType(data.visitor.otherIdType || '')
       setError('')
     } catch (reason) {
       setError(userFacingApiError(reason, 'Request details could not be loaded.'))
@@ -96,7 +96,12 @@ export function VisitorRequestDetailPage() {
     if (!visitDayId) return
     setActing(true)
     try {
-      setRequest(await executeVisitorRequestAction(id, { action: 'verify', visitDayId, idType: verifyIdType, idLast4: verifyIdLast4 }))
+      setRequest(await executeVisitorRequestAction(id, {
+        action: 'verify',
+        visitDayId,
+        idType: verifyIdType,
+        otherIdType: verifyOtherIdType.trim() || undefined,
+      }))
       setShowVerifyModal(false)
       setError('')
     } catch (reason) {
@@ -323,11 +328,11 @@ export function VisitorRequestDetailPage() {
           <p><strong>Request Number:</strong> {request.requestNumber}</p>
           <p><strong>Visitor Type:</strong> {request.visitor.visitorType || 'External'}</p>
           <p><strong>Visiting Company:</strong> {request.visitingCompany || 'Demo Aerospace Engineering Ltd.'}</p>
-          <p><strong>Visiting Site:</strong> {request.visitingSite || 'Rolls-Royce Demo Facility'}</p>
+          <p><strong>Visiting Site:</strong> {request.visitingSite || 'Head Office Campus'}</p>
           <p><strong>Visit Date(s):</strong> {request.visitDays.map(d => d.visitDate).join(', ') || 'Today'}</p>
           <p><strong>Purpose Type:</strong> {request.visitPurposeType || 'Technical'}</p>
           <p><strong>Purpose Description:</strong> {request.purpose}</p>
-          <p><strong>Areas to Visit:</strong> {request.areasToVisit || 'Engine Research Area'}</p>
+          <p><strong>Areas to Visit:</strong> {request.areasToVisit || 'Engineering Area'}</p>
           <p><strong>Main Host:</strong> {request.mainHostName || 'Alex Morgan'}</p>
           <p><strong>Escorting Host:</strong> {request.escortingHostName || 'Sarah Jenkins'}</p>
         </Info>
@@ -336,11 +341,10 @@ export function VisitorRequestDetailPage() {
         <Info title="Visitor Information">
           <p><strong>Full Legal Name:</strong> {request.visitor.fullName || 'Adam Gilchrist'}</p>
           <p><strong>Citizenship:</strong> {request.visitor.citizenship || 'Australian'}</p>
-          <p><strong>Nationality:</strong> {request.visitor.nationality || 'Australian'}</p>
           <p><strong>Country of Residence:</strong> {request.visitor.country || 'Australia'}</p>
           <p><strong>Designation / Position:</strong> {request.visitor.designation || 'Senior Technical Consultant'}</p>
           <p><strong>ID Type:</strong> {request.visitor.idType || 'Passport'}</p>
-          <p><strong>ID Last 4 Digits:</strong> {request.visitor.idLast4 || '4821'}</p>
+          {request.visitor.otherIdType && <p><strong>Custom ID Type:</strong> {request.visitor.otherIdType}</p>}
           <p><strong>Email:</strong> {request.visitor.email || 'adam.gilchrist.demo@example.com'}</p>
           <p><strong>Phone:</strong> {request.visitor.phone || '+61 400 000 000'}</p>
         </Info>
@@ -440,7 +444,7 @@ export function VisitorRequestDetailPage() {
                 ) : (
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--silver)] pb-2 text-xs">
                     <span>
-                      <strong className="text-[var(--royal-blue)]">RRVMS-2026-000000</strong> — Rolls-Royce Demo Facility (Initial technical consultation on engine design specifications)
+                      <strong className="text-[var(--royal-blue)]">DEMO-2026-000000</strong> — Demo facility (Initial technical consultation on engineering specifications)
                     </span>
                     <span className="rounded bg-[#d4edda] px-2 py-0.5 font-semibold text-[#155724]">Visit Process Completed</span>
                   </div>
@@ -458,7 +462,7 @@ export function VisitorRequestDetailPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-1 text-xs text-[var(--muted)]">Request RRVMS-2026-000000 — Visit Date: 14 days ago — Status: Completed</p>
+                  <p className="mt-1 text-xs text-[var(--muted)]">Request DEMO-2026-000000 — Visit Date: 14 days ago — Status: Completed</p>
                 )}
               </div>
             </div>
@@ -624,13 +628,12 @@ export function VisitorRequestDetailPage() {
                 />
               </label>
               <label className="block text-xs font-semibold uppercase text-[var(--muted)]">
-                ID Last 4 Digits
+                Custom ID Type (if applicable)
                 <input
                   type="text"
-                  maxLength={4}
                   className="mt-1 block w-full border border-[var(--silver)] p-2 text-sm font-normal"
-                  value={verifyIdLast4}
-                  onChange={(e) => setVerifyIdLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  value={verifyOtherIdType}
+                  onChange={(e) => setVerifyOtherIdType(e.target.value)}
                 />
               </label>
             </div>

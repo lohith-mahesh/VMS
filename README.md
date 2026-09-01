@@ -1,6 +1,6 @@
-# RRVMS
+# Visitor Management System
 
-Rolls-Royce Visitor Management System foundation.
+Visitor management system foundation for host, export-control, and reception workflows.
 
 ## Run the client
 

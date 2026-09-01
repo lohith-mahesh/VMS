@@ -10,18 +10,18 @@ function sanitize(value: unknown): unknown {
 }
 
 export const logger = {
-  info(message: string, context?: unknown) { if (import.meta.env.DEV) console.info(`[RRVMS] ${message}`, sanitize(context)) },
-  warn(message: string, context?: unknown) { if (import.meta.env.DEV) console.warn(`[RRVMS] ${message}`, sanitize(context)) },
-  error(message: string, context?: unknown) { if (import.meta.env.DEV) console.error(`[RRVMS] ${message}`, sanitize(context)) },
+  info(message: string, context?: unknown) { if (import.meta.env.DEV) console.info(`[VMS] ${message}`, sanitize(context)) },
+  warn(message: string, context?: unknown) { if (import.meta.env.DEV) console.warn(`[VMS] ${message}`, sanitize(context)) },
+  error(message: string, context?: unknown) { if (import.meta.env.DEV) console.error(`[VMS] ${message}`, sanitize(context)) },
 }
 
 export function userFacingApiError(error: unknown, fallback: string) {
   logger.error(fallback, axios.isAxiosError(error) ? { status: error.response?.status, message: error.message, backend: error.response?.data } : error)
   if (!error || !axios.isAxiosError(error)) return fallback
-  if (!error.response) return 'Unable to connect to RRVMS services.'
+  if (!error.response) return 'Unable to connect to the visitor services.'
   if (error.response.status === 401) return 'Your session has expired. Please sign in again.'
   if (error.response.status === 403) return 'You do not have permission to perform this action.'
   if (typeof error.response.data?.error === 'string') return error.response.data.error
-  if (error.response.status >= 500) return 'RRVMS services are temporarily unavailable.'
+  if (error.response.status >= 500) return 'Visitor services are temporarily unavailable.'
   return fallback
 }

@@ -8,7 +8,6 @@ import { formatStatus } from '../utils/formatters'
 const blankSubmission: SubmitVisitorForm = {
   fullName: '',
   citizenship: '',
-  nationality: '',
   country: '',
   designation: '',
   companyName: '',
@@ -17,9 +16,11 @@ const blankSubmission: SubmitVisitorForm = {
   telephone: '',
   email: '',
   idType: 'Passport',
-  idLast4: '',
+  otherIdType: '',
   assets: [],
 }
+
+const idTypeOptions = ['Passport', 'Aadhaar ID', 'Driving License', 'PAN Card', 'Voter ID', 'Others']
 
 export function VisitorFormPage() {
   const { id = '' } = useParams()
@@ -42,7 +43,6 @@ export function VisitorFormPage() {
         setForm({
           fullName: result.fullName,
           citizenship: result.citizenship,
-          nationality: result.nationality,
           country: result.country,
           designation: result.designation,
           companyName: result.companyName,
@@ -51,7 +51,7 @@ export function VisitorFormPage() {
           telephone: result.telephone,
           email: result.email,
           idType: result.idType || 'Passport',
-          idLast4: result.idLast4,
+          otherIdType: result.otherIdType || '',
           assets: result.assets,
         })
       })
@@ -60,19 +60,25 @@ export function VisitorFormPage() {
     return () => { mounted = false }
   }, [id])
 
-  const update = <K extends keyof SubmitVisitorForm>(field: K, value: SubmitVisitorForm[K]) => setForm(current => ({ ...current, [field]: value }))
-  const updateAsset = (index: number, field: keyof SubmitVisitorForm['assets'][number], value: string) => setForm(current => ({ ...current, assets: current.assets.map((asset, assetIndex) => assetIndex === index ? { ...asset, [field]: value } : asset) }))
-  const addAsset = () => setForm(current => ({ ...current, assets: [...current.assets, { assetType: '', description: '', serialNumber: '' }] }))
-  const removeAsset = (index: number) => setForm(current => ({ ...current, assets: current.assets.filter((_, assetIndex) => assetIndex !== index) }))
+  const update = <K extends keyof SubmitVisitorForm>(field: K, value: SubmitVisitorForm[K]) =>
+    setForm((current) => ({ ...current, [field]: value }))
+
+  const updateAsset = (index: number, field: keyof SubmitVisitorForm['assets'][number], value: string) =>
+    setForm((current) => ({
+      ...current,
+      assets: current.assets.map((asset, assetIndex) => (assetIndex === index ? { ...asset, [field]: value } : asset)),
+    }))
+
+  const addAsset = () => setForm((current) => ({ ...current, assets: [...current.assets, { assetType: '', description: '', serialNumber: '' }] }))
+  const removeAsset = (index: number) => setForm((current) => ({ ...current, assets: current.assets.filter((_, assetIndex) => assetIndex !== index) }))
 
   const validate = () => {
     const errors: Record<string, string> = {}
     if (!form.fullName.trim()) errors.fullName = 'Full legal name is required.'
     if (!form.country) errors.country = 'Country is required.'
     if (!form.citizenship) errors.citizenship = 'Citizenship is required.'
-    if (!form.nationality) errors.nationality = 'Nationality is required.'
     if (!form.officeCountry) errors.officeCountry = 'Office country is required.'
-    if (!/^\d{4}$/.test(form.idLast4)) errors.idLast4 = 'ID last 4 must contain exactly four numeric digits.'
+    if (form.idType === 'Others' && !form.otherIdType?.trim()) errors.otherIdType = 'Please specify the custom ID type.'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -103,7 +109,7 @@ export function VisitorFormPage() {
   return (
     <form onSubmit={submit} className="mx-auto max-w-4xl space-y-6">
       <header>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">RRVMS visitor form</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--royal-blue)]">Visitor form</p>
         <h1 className="display mt-2 text-4xl font-bold text-[var(--royal-blue)]">Visitor information</h1>
         {formInfo && <p className="mt-2 text-sm text-[var(--muted)]">{formInfo.requestNumber} — {formatStatus(formInfo.status)}</p>}
       </header>
@@ -111,31 +117,31 @@ export function VisitorFormPage() {
       {error && <p role="alert" className="border border-[#e1b5b5] bg-[#fff4f4] p-4 text-sm text-[#9b2c2c]">{error}</p>}
 
       <section className="grid gap-4 border border-[var(--silver)] bg-white p-6 sm:grid-cols-2">
-        <Field label="Full legal name" error={fieldErrors.fullName} value={form.fullName} onChange={value => update('fullName', value)} required />
-        <Select label="Citizenship" error={fieldErrors.citizenship} value={form.citizenship} onChange={value => update('citizenship', value)} />
-        <Select label="Nationality" error={fieldErrors.nationality} value={form.nationality} onChange={value => update('nationality', value)} />
-        <Select label="Country of visitor" error={fieldErrors.country} value={form.country} onChange={value => update('country', value)} />
-        <Field label="Designation / position held" value={form.designation} onChange={value => update('designation', value)} />
-        <Field label="Visiting company" value={form.companyName} onChange={value => update('companyName', value)} required />
-        <Field label="Office city" value={form.officeCity} onChange={value => update('officeCity', value)} />
-        <Select label="Office country" error={fieldErrors.officeCountry} value={form.officeCountry} onChange={value => update('officeCountry', value)} />
-        <Field label="Phone" value={form.telephone} onChange={value => update('telephone', value)} required />
-        <Field label="Email" type="email" value={form.email} onChange={value => update('email', value)} required />
+        <Field label="Full legal name" error={fieldErrors.fullName} value={form.fullName} onChange={(value) => update('fullName', value)} required />
+        <Select label="Citizenship" error={fieldErrors.citizenship} value={form.citizenship} onChange={(value) => update('citizenship', value)} />
+        <Select label="Country of visitor" error={fieldErrors.country} value={form.country} onChange={(value) => update('country', value)} />
+        <Field label="Designation / position held" value={form.designation} onChange={(value) => update('designation', value)} />
+        <Field label="Visiting company" value={form.companyName} onChange={(value) => update('companyName', value)} required />
+        <Field label="Office city" value={form.officeCity} onChange={(value) => update('officeCity', value)} />
+        <Select label="Office country" error={fieldErrors.officeCountry} value={form.officeCountry} onChange={(value) => update('officeCountry', value)} />
+        <Field label="Phone" value={form.telephone} onChange={(value) => update('telephone', value)} required />
+        <Field label="Email" type="email" value={form.email} onChange={(value) => update('email', value)} required />
       </section>
 
-      {/* Identity document section: SINGLE SELECT ID TYPE + SINGLE 4-DIGIT LAST 4 INPUT ONLY */}
       <section className="grid gap-4 border border-[var(--silver)] bg-white p-6 sm:grid-cols-2">
-        <Select label="ID type" value={form.idType} onChange={value => update('idType', value)} options={['Passport', 'Visa', 'Government ID', 'Other Valid ID']} />
-        <Field label="ID last 4 digits" error={fieldErrors.idLast4} value={form.idLast4} onChange={value => update('idLast4', value.replace(/\D/g, '').slice(0, 4))} required />
+        <Select label="ID type" value={form.idType} onChange={(value) => update('idType', value)} options={idTypeOptions} />
+        {form.idType === 'Others' && (
+          <Field label="Custom ID type" error={fieldErrors.otherIdType} value={form.otherIdType ?? ''} onChange={(value) => update('otherIdType', value)} required />
+        )}
       </section>
 
       <section className="border border-[var(--silver)] bg-white p-6">
         <h2 className="display text-xl font-bold text-[var(--royal-blue)]">Declared assets</h2>
         {form.assets.map((asset, index) => (
-          <div key={index} className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_1fr_auto]">
-            <Field label="Asset type" value={asset.assetType} onChange={value => updateAsset(index, 'assetType', value)} required />
-            <Field label="Description" value={asset.description} onChange={value => updateAsset(index, 'description', value)} />
-            <Field label="Serial number" value={asset.serialNumber} onChange={value => updateAsset(index, 'serialNumber', value)} />
+          <div key={`${asset.assetType}-${index}`} className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_1fr_auto]">
+            <Field label="Asset type" value={asset.assetType} onChange={(value) => updateAsset(index, 'assetType', value)} required />
+            <Field label="Description" value={asset.description} onChange={(value) => updateAsset(index, 'description', value)} />
+            <Field label="Serial number" value={asset.serialNumber} onChange={(value) => updateAsset(index, 'serialNumber', value)} />
             <button type="button" onClick={() => removeAsset(index)} className="cursor-pointer self-end border border-[var(--silver)] px-3 py-2 text-sm font-semibold text-[var(--royal-blue)]">Remove</button>
           </div>
         ))}
@@ -144,7 +150,7 @@ export function VisitorFormPage() {
 
       <div className="flex flex-wrap gap-3">
         <button disabled={saving} className="cursor-pointer rounded-[4px] bg-[var(--royal-blue)] px-5 py-3 text-sm font-semibold text-white disabled:opacity-60">
-          {saving ? 'Submitting...' : isRevisionAllowed ? 'Submit Revised Form (Version 2)' : 'Submit Visitor Form'}
+          {saving ? 'Submitting...' : isRevisionAllowed ? 'Submit revised form' : 'Submit visitor form'}
         </button>
         {formInfo && (
           <Link to={`/visitor-requests/${formInfo.visitorRequestId}`} className="border border-[var(--royal-blue)] px-5 py-3 text-sm font-semibold text-[var(--royal-blue)]">
@@ -156,23 +162,51 @@ export function VisitorFormPage() {
   )
 }
 
-function Field({ label, value, onChange, type = 'text', required = false, error }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean; error?: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  required = false,
+  error,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  type?: string
+  required?: boolean
+  error?: string
+}) {
   return (
     <label className="text-sm font-semibold text-[var(--ink)]">
       {label}
-      <input required={required} type={type} value={value} onChange={event => onChange(event.target.value)} className="mt-2 block w-full border border-[var(--silver)] px-3 py-2.5 font-normal" />
+      <input required={required} type={type} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 block w-full border border-[var(--silver)] px-3 py-2.5 font-normal" />
       {error && <span className="mt-1 block text-xs font-normal text-[#9b2c2c]">{error}</span>}
     </label>
   )
 }
 
-function Select({ label, value, onChange, options = countries as unknown as string[], error }: { label: string; value: string; onChange: (value: string) => void; options?: string[]; error?: string }) {
+function Select({
+  label,
+  value,
+  onChange,
+  options = countries as unknown as string[],
+  error,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options?: string[]
+  error?: string
+}) {
   return (
     <label className="text-sm font-semibold text-[var(--ink)]">
       {label}
-      <select required className="mt-2 block w-full border border-[var(--silver)] bg-white px-3 py-2.5 font-normal" value={value} onChange={event => onChange(event.target.value)}>
+      <select required className="mt-2 block w-full border border-[var(--silver)] bg-white px-3 py-2.5 font-normal" value={value} onChange={(event) => onChange(event.target.value)}>
         <option value="">Select...</option>
-        {options.map(option => <option key={option}>{option}</option>)}
+        {options.map((option) => (
+          <option key={option}>{option}</option>
+        ))}
       </select>
       {error && <span className="mt-1 block text-xs font-normal text-[#9b2c2c]">{error}</span>}
     </label>
