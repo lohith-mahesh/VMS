@@ -23,7 +23,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const userId = localStorage.getItem('visitor.mock.session')
-  if (userId) config.headers['X-Visitor-Prototype-User'] = userId
+  if (userId) config.headers['X-RRVMS-Prototype-User'] = userId
   return config
 })
 apiClient.interceptors.response.use(
