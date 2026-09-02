@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -49,15 +49,9 @@ namespace RRVMS.Api.Migrations
                 nullable: false,
                 defaultValue: "");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Comments_AuthorUserId",
-                table: "Comments",
-                column: "AuthorUserId");
+            migrationBuilder.Sql("CREATE INDEX IF NOT EXISTS \"IX_Comments_AuthorUserId\" ON \"Comments\" (\"AuthorUserId\");");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AdditionalInformationRequests_RequestedByUserId",
-                table: "AdditionalInformationRequests",
-                column: "RequestedByUserId");
+            migrationBuilder.Sql("CREATE INDEX IF NOT EXISTS \"IX_AdditionalInformationRequests_RequestedByUserId\" ON \"AdditionalInformationRequests\" (\"RequestedByUserId\");");
         }
 
         /// <inheritdoc />
