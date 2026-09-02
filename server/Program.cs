@@ -73,10 +73,11 @@ builder.Services.AddCors(options => options.AddPolicy("Client", policy => policy
 
 var app = builder.Build();
 
-// Seed development / demo data idempotently
+// Ensure database schema is migrated and seed development / demo data idempotently
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<RrvmsDbContext>();
+    await dbContext.Database.MigrateAsync();
     await DbSeeder.SeedAsync(dbContext, app.Environment);
 }
 
