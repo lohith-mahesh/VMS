@@ -42,7 +42,11 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "DATABASE_URL is not configured. Set it in server/.env, as an environment variable, or use .NET user secrets.");
 }
 
-builder.Services.AddDbContext<RrvmsDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<RrvmsDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
 builder.Services.AddScoped<IVisitorRequestService, VisitorRequestService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, MockCurrentUserService>();
@@ -110,6 +114,7 @@ async Task RunMigrationsAndExit()
 
         var optionsBuilder = new DbContextOptionsBuilder<RrvmsDbContext>();
         optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         
         using var context = new RrvmsDbContext(optionsBuilder.Options);
         Console.WriteLine("Connecting to database...");
