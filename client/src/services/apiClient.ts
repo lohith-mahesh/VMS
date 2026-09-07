@@ -145,6 +145,11 @@ export type VisitorRequestDetail = {
     id?: string
     fullName: string
     companyName: string
+    visitingCompanyAddress: string
+    visitingCompanyCountry: string
+    isFaculty: boolean
+    isGtre: boolean
+    ecIdType?: 'VENDOR' | 'VISITOR' | 'GTRE'
     citizenship: string
     country: string
     designation: string
@@ -181,8 +186,6 @@ export type VisitorRequestDetail = {
 
 export type CreateVisitorRequest = {
   visitorType: 'Internal' | 'External'
-  visitingCompany: string
-  visitingCompanyAddressCountry: string
   visitingSite: 'Bangalore' | 'Delhi' | ''
   areasToVisit: string
   siteTimezone: 'Asia/Kolkata'
@@ -241,6 +244,7 @@ export type ReceptionVisitor = {
   visitorName: string
   company: string
   idType?: string
+  ecIdType?: 'VENDOR' | 'VISITOR' | 'GTRE'
   otherIdType?: string
   assets?: Array<{ id: string; assetType: string; description: string; serialNumber: string; verificationStatus: string }>
 }
@@ -303,8 +307,8 @@ export async function ecRequestInformation(id: string, comment: string) {
   return (await apiClient.post<VisitorRequestDetail>(`/api/visitor-requests/${id}/ec/request-information`, { requestedInformation: comment, comment })).data
 }
 
-export async function ecApprove(id: string, comment?: string) {
-  return (await apiClient.post<VisitorRequestDetail>(`/api/visitor-requests/${id}/ec/approve`, { comment })).data
+export async function ecApprove(id: string, ecIdType: 'VENDOR' | 'VISITOR' | 'GTRE', comment?: string) {
+  return (await apiClient.post<VisitorRequestDetail>(`/api/visitor-requests/${id}/ec/approve`, { ecIdType, comment })).data
 }
 
 export async function ecReject(id: string, reason: string) {
@@ -335,6 +339,10 @@ export type VisitorForm = {
   country: string
   designation: string
   companyName: string
+  visitingCompanyAddress: string
+  visitingCompanyCountry: string
+  isFaculty: boolean
+  isGtre: boolean
   officeCity: string
   officeCountry: string
   telephone: string

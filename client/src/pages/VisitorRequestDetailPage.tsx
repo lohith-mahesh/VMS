@@ -23,6 +23,7 @@ export function VisitorRequestDetailPage() {
   const [verifyOtherIdType, setVerifyOtherIdType] = useState('')
   const [badgeNumber, setBadgeNumber] = useState('B-101')
   const [holdComment, setHoldComment] = useState('Undeclared asset detected during reception screening.')
+  const [ecIdType, setEcIdType] = useState<'VENDOR' | 'VISITOR' | 'GTRE'>('VISITOR')
 
   const load = useCallback(async () => {
     try {
@@ -30,6 +31,7 @@ export function VisitorRequestDetailPage() {
       setRequest(data)
       setVerifyIdType(data.visitor.idType || 'Passport')
       setVerifyOtherIdType(data.visitor.otherIdType || '')
+      setEcIdType(data.visitor.ecIdType || 'VISITOR')
       setError('')
     } catch (reason) {
       setError(userFacingApiError(reason, 'Request details could not be loaded.'))
@@ -54,7 +56,7 @@ export function VisitorRequestDetailPage() {
   const handleApprove = async () => {
     setActing(true)
     try {
-      setRequest(await ecApprove(id, 'Approved by Export Control'))
+      setRequest(await ecApprove(id, ecIdType, 'Approved by Export Control'))
       setError('')
     } catch (reason) {
       setError(userFacingApiError(reason, 'Could not approve visitor request.'))
@@ -211,6 +213,14 @@ export function VisitorRequestDetailPage() {
       {isEc && ['EC_REVIEW', 'DOCUMENTATION_SUBMITTED', 'EC_RE_REVIEW_REQUIRED'].includes(request.currentStatus) && (
         <section className="flex flex-wrap items-center gap-3 border border-[var(--royal-blue)] bg-[#f4f7fb] p-5">
           <p className="mr-3 text-sm font-bold text-[var(--royal-blue)]">EC Actions:</p>
+          <fieldset className="basis-full border-b border-[var(--silver)] pb-4">
+            <legend className="text-sm font-bold text-[var(--ink)]">Required ID</legend>
+            <div className="mt-2 flex flex-wrap gap-4 text-sm">
+              {([['VENDOR', 'Vendor - Orange'], ['VISITOR', 'Visitor - Red'], ['GTRE', 'GTRE - Red']] as const).map(([value, label]) => (
+                <label key={value} className="flex items-center gap-2"><input type="radio" name="ec-id-type" value={value} checked={ecIdType === value} onChange={() => setEcIdType(value)} /> {label}</label>
+              ))}
+            </div>
+          </fieldset>
           <button
             disabled={acting}
             type="button"
@@ -328,6 +338,8 @@ export function VisitorRequestDetailPage() {
           <p><strong>Request Number:</strong> {request.requestNumber}</p>
           <p><strong>Visitor Type:</strong> {request.visitor.visitorType || 'External'}</p>
           <p><strong>Visiting Company:</strong> {request.visitingCompany || 'Demo Aerospace Engineering Ltd.'}</p>
+          <p><strong>Company Address:</strong> {request.visitor.visitingCompanyAddress || 'Not provided'}</p>
+          <p><strong>Company Country:</strong> {request.visitor.visitingCompanyCountry || 'Not provided'}</p>
           <p><strong>Visiting Site:</strong> {request.visitingSite || 'Head Office Campus'}</p>
           <p><strong>Visit Date(s):</strong> {request.visitDays.map(d => d.visitDate).join(', ') || 'Today'}</p>
           <p><strong>Purpose Type:</strong> {request.visitPurposeType || 'Technical'}</p>
@@ -340,6 +352,7 @@ export function VisitorRequestDetailPage() {
         {/* VISITOR DETAILS */}
         <Info title="Visitor Information">
           <p><strong>Full Legal Name:</strong> {request.visitor.fullName || 'Adam Gilchrist'}</p>
+          <p><strong>Classification:</strong> {[request.visitor.isFaculty && 'Faculty', request.visitor.isGtre && 'GTRE'].filter(Boolean).join(', ') || 'Not selected'}</p>
           <p><strong>Citizenship:</strong> {request.visitor.citizenship || 'Australian'}</p>
           <p><strong>Country of Residence:</strong> {request.visitor.country || 'Australia'}</p>
           <p><strong>Designation / Position:</strong> {request.visitor.designation || 'Senior Technical Consultant'}</p>
@@ -759,8 +772,8 @@ function Actions({
   const host = role === 'HOST_REQUESTER'
   return (
     <div className="flex flex-wrap gap-2">
-      {host && status === 'VISITOR_FORM_SUBMITTED' && button('host-review', 'Review visitor form')}
-      {host && status === 'HOST_REVIEW' && button('host-submit', 'Final submit')}
+      {host && status === 'VISITOR_FORM_SUBMITTED' && button('host-review', 'Review')}
+      {host && status === 'HOST_REVIEW' && button('host-submit', 'Send to EC')}
       {host && status === 'HOST_DPS' && button('dps', 'Submit host DPS', { dpsPerformer: 'HOST_REQUESTER', dpsResult: 'Clear' })}
     </div>
   )

@@ -9,8 +9,6 @@ const todayIso = new Date().toISOString().slice(0, 10)
 
 const initialForm: CreateVisitorRequest = {
   visitorType: 'External',
-  visitingCompany: '',
-  visitingCompanyAddressCountry: '',
   visitingSite: 'Bangalore',
   areasToVisit: '',
   siteTimezone: 'Asia/Kolkata',
@@ -33,13 +31,12 @@ export function CreateVisitorRequestPage() {
     setForm((current) => ({ ...current, [field]: value }))
 
   const validate = () => {
-    if (!form.visitingCompany.trim()) return 'Visiting company is required.'
-    if (!form.visitingCompanyAddressCountry.trim()) return 'Address and country of the visiting company is required.'
     if (!form.visitingSite) return 'Please select the site.'
     if (!form.purpose.trim()) return 'Purpose of visit is required.'
     if (!form.areasToVisit.trim()) return 'Areas to be visited is required.'
     if (!form.mainHostId.trim()) return 'Main host is required.'
     if (form.visitDays.length === 0) return 'At least one visit date is required.'
+    if (new Set(form.visitDays.map((day) => day.visitDate)).size !== form.visitDays.length) return 'Visit dates must be unique.'
     for (const day of form.visitDays) {
       if (!day.visitDate) return 'Every visit date is required.'
       if (day.visitDate < todayIso) return 'Past dates are not allowed. Please select today or a future date.'
@@ -60,8 +57,6 @@ export function CreateVisitorRequestPage() {
     try {
       const result = await createVisitorRequest({
         ...form,
-        visitingCompany: form.visitingCompany.trim(),
-        visitingCompanyAddressCountry: form.visitingCompanyAddressCountry.trim(),
         visitingSite: form.visitingSite as 'Bangalore' | 'Delhi',
         siteTimezone: 'Asia/Kolkata',
       })
@@ -85,8 +80,6 @@ export function CreateVisitorRequestPage() {
 
       <section className="grid gap-4 border border-[var(--silver)] bg-white p-6 sm:grid-cols-2">
         <Select label="Visitor type" value={form.visitorType} onChange={(value) => update('visitorType', value as CreateVisitorRequest['visitorType'])} options={['External', 'Internal']} />
-        <Field label="Visiting company" value={form.visitingCompany} onChange={(value) => update('visitingCompany', value)} required />
-        <Field label="Address & country of visiting company" value={form.visitingCompanyAddressCountry} onChange={(value) => update('visitingCompanyAddressCountry', value)} required />
         <Select label="Site" value={form.visitingSite} onChange={(value) => update('visitingSite', value as CreateVisitorRequest['visitingSite'])} options={siteOptions} />
         <Field label="Site timezone" value={form.siteTimezone} onChange={() => undefined} readOnly />
         <Field label="Number of visitors" type="number" min="1" value={String(form.numberOfVisitors)} onChange={(value) => update('numberOfVisitors', Number(value))} required />
@@ -102,7 +95,7 @@ export function CreateVisitorRequestPage() {
         <p className="mt-2 text-sm text-[var(--muted)]">Only today or future dates are allowed in IST.</p>
 
         {form.visitDays.map((day, index) => (
-          <div key={`${day.visitDate}-${index}`} className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div key={`${day.visitDate}-${index}`} className="mt-4 grid gap-4 sm:grid-cols-[1fr_1fr_1fr_auto]">
             <Field
               label="Date"
               type="date"
@@ -123,6 +116,14 @@ export function CreateVisitorRequestPage() {
                 visitDays: current.visitDays.map((item, itemIndex) => itemIndex === index ? { ...item, expectedArrivalTime: value } : item),
               }))}
             />
+            <button
+              type="button"
+              disabled={form.visitDays.length === 1}
+              className="self-end border border-[var(--silver)] px-3 py-2.5 text-sm font-semibold text-[var(--royal-blue)] disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={() => setForm((current) => ({ ...current, visitDays: current.visitDays.filter((_, itemIndex) => itemIndex !== index) }))}
+            >
+              Remove
+            </button>
             <Field
               label="Departure"
               type="time"

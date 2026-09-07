@@ -11,6 +11,10 @@ const blankSubmission: SubmitVisitorForm = {
   country: '',
   designation: '',
   companyName: '',
+  visitingCompanyAddress: '',
+  visitingCompanyCountry: '',
+  isFaculty: false,
+  isGtre: false,
   officeCity: '',
   officeCountry: '',
   telephone: '',
@@ -46,6 +50,10 @@ export function VisitorFormPage() {
           country: result.country,
           designation: result.designation,
           companyName: result.companyName,
+          visitingCompanyAddress: result.visitingCompanyAddress,
+          visitingCompanyCountry: result.visitingCompanyCountry,
+          isFaculty: result.isFaculty,
+          isGtre: result.isGtre,
           officeCity: result.officeCity,
           officeCountry: result.officeCountry,
           telephone: result.telephone,
@@ -78,6 +86,8 @@ export function VisitorFormPage() {
     if (!form.country) errors.country = 'Country is required.'
     if (!form.citizenship) errors.citizenship = 'Citizenship is required.'
     if (!form.officeCountry) errors.officeCountry = 'Office country is required.'
+    if (!form.visitingCompanyAddress.trim()) errors.visitingCompanyAddress = 'Visiting company address is required.'
+    if (!form.visitingCompanyCountry) errors.visitingCompanyCountry = 'Visiting company country is required.'
     if (form.idType === 'Others' && !form.otherIdType?.trim()) errors.otherIdType = 'Please specify the custom ID type.'
     setFieldErrors(errors)
     return Object.keys(errors).length === 0
@@ -122,10 +132,21 @@ export function VisitorFormPage() {
         <Select label="Country of visitor" error={fieldErrors.country} value={form.country} onChange={(value) => update('country', value)} />
         <Field label="Designation / position held" value={form.designation} onChange={(value) => update('designation', value)} />
         <Field label="Visiting company" value={form.companyName} onChange={(value) => update('companyName', value)} required />
+        <Field label="Address of visiting company" error={fieldErrors.visitingCompanyAddress} value={form.visitingCompanyAddress} onChange={(value) => update('visitingCompanyAddress', value)} required />
+        <Select label="Country of visiting company" error={fieldErrors.visitingCompanyCountry} value={form.visitingCompanyCountry} onChange={(value) => update('visitingCompanyCountry', value)} />
         <Field label="Office city" value={form.officeCity} onChange={(value) => update('officeCity', value)} />
         <Select label="Office country" error={fieldErrors.officeCountry} value={form.officeCountry} onChange={(value) => update('officeCountry', value)} />
         <Field label="Phone" value={form.telephone} onChange={(value) => update('telephone', value)} required />
         <Field label="Email" type="email" value={form.email} onChange={(value) => update('email', value)} required />
+      </section>
+
+      <section className="border border-[var(--silver)] bg-white p-6">
+        <h2 className="display text-xl font-bold text-[var(--royal-blue)]">Visitor classification</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">Select the applicable visitor category. The request's existing visit-date list supports multiple dates for these visitor types.</p>
+        <div className="mt-4 flex flex-wrap gap-6 text-sm">
+          <label className="flex items-center gap-2 font-semibold"><input type="checkbox" checked={form.isFaculty} onChange={(event) => update('isFaculty', event.target.checked)} /> Faculty</label>
+          <label className="flex items-center gap-2 font-semibold"><input type="checkbox" checked={form.isGtre} onChange={(event) => update('isGtre', event.target.checked)} /> GTRE</label>
+        </div>
       </section>
 
       <section className="grid gap-4 border border-[var(--silver)] bg-white p-6 sm:grid-cols-2">
