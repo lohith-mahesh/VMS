@@ -82,6 +82,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<RrvmsDbContext>();
     await dbContext.Database.MigrateAsync();
+    await EnsureVisitorDetailColumnsAsync(dbContext);
     await DbSeeder.SeedAsync(dbContext, app.Environment);
 }
 
@@ -91,6 +92,24 @@ app.UseCors("Client");
 app.MapControllers();
 
 app.Run();
+
+static async Task EnsureVisitorDetailColumnsAsync(RrvmsDbContext dbContext)
+{
+    await dbContext.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "Visitors"
+            ADD COLUMN IF NOT EXISTS "VisitingCompanyAddress" text NOT NULL DEFAULT '',
+            ADD COLUMN IF NOT EXISTS "VisitingCompanyCountry" text NOT NULL DEFAULT '',
+            ADD COLUMN IF NOT EXISTS "IsFaculty" boolean NOT NULL DEFAULT false,
+            ADD COLUMN IF NOT EXISTS "IsGtre" boolean NOT NULL DEFAULT false,
+            ADD COLUMN IF NOT EXISTS "EcIdType" text;
+
+        ALTER TABLE "VisitorForms"
+            ADD COLUMN IF NOT EXISTS "VisitingCompanyAddress" text NOT NULL DEFAULT '',
+            ADD COLUMN IF NOT EXISTS "VisitingCompanyCountry" text NOT NULL DEFAULT '',
+            ADD COLUMN IF NOT EXISTS "IsFaculty" boolean NOT NULL DEFAULT false,
+            ADD COLUMN IF NOT EXISTS "IsGtre" boolean NOT NULL DEFAULT false;
+        """);
+}
 
 // MIGRATION EXECUTION MODE
 async Task RunMigrationsAndExit()
