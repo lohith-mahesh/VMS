@@ -76,6 +76,11 @@ public sealed class Visitor
     public Guid? VisitorRequestId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
+    public string VisitingCompanyAddress { get; set; } = string.Empty;
+    public string VisitingCompanyCountry { get; set; } = string.Empty;
+    public bool IsFaculty { get; set; }
+    public bool IsGtre { get; set; }
+    public string? EcIdType { get; set; }
     public string Citizenship { get; set; } = string.Empty;
     public string Country { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
@@ -307,6 +312,10 @@ public sealed class VisitorForm
     public string Country { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
+    public string VisitingCompanyAddress { get; set; } = string.Empty;
+    public string VisitingCompanyCountry { get; set; } = string.Empty;
+    public bool IsFaculty { get; set; }
+    public bool IsGtre { get; set; }
     public string OfficeCity { get; set; } = string.Empty;
     public string OfficeCountry { get; set; } = string.Empty;
     public string Telephone { get; set; } = string.Empty;
