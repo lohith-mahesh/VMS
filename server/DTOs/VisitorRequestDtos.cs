@@ -5,8 +5,8 @@ namespace RRVMS.Api.DTOs;
 public sealed class CreateVisitorRequestDto
 {
     [Required] public string VisitorType { get; init; } = "External";
-    [Required, StringLength(160)] public string VisitingCompany { get; init; } = string.Empty;
-    [Required, StringLength(300)] public string VisitingCompanyAddressCountry { get; init; } = string.Empty;
+    [StringLength(160)] public string VisitingCompany { get; init; } = string.Empty;
+    [StringLength(300)] public string VisitingCompanyAddressCountry { get; init; } = string.Empty;
     [Required, StringLength(120)] public string VisitingSite { get; init; } = string.Empty;
     [Required, StringLength(1000)] public string AreasToVisit { get; init; } = string.Empty;
     [Required, StringLength(80)] public string SiteTimezone { get; init; } = "Asia/Kolkata";
@@ -36,6 +36,10 @@ public sealed class VisitorFormDto
     public string Country { get; init; } = string.Empty;
     public string Designation { get; init; } = string.Empty;
     public string CompanyName { get; init; } = string.Empty;
+    public string VisitingCompanyAddress { get; init; } = string.Empty;
+    public string VisitingCompanyCountry { get; init; } = string.Empty;
+    public bool IsFaculty { get; init; }
+    public bool IsGtre { get; init; }
     public string OfficeCity { get; init; } = string.Empty;
     public string OfficeCountry { get; init; } = string.Empty;
     public string Email { get; init; } = string.Empty;
@@ -52,6 +56,10 @@ public sealed class SubmitVisitorFormDto
     [Required, StringLength(80)] public string Country { get; init; } = string.Empty;
     [StringLength(120)] public string Designation { get; init; } = string.Empty;
     [Required, StringLength(160)] public string CompanyName { get; init; } = string.Empty;
+    [Required, StringLength(300)] public string VisitingCompanyAddress { get; init; } = string.Empty;
+    [Required, StringLength(80)] public string VisitingCompanyCountry { get; init; } = string.Empty;
+    public bool IsFaculty { get; init; }
+    public bool IsGtre { get; init; }
     [StringLength(160)] public string OfficeCity { get; init; } = string.Empty;
     [Required, StringLength(80)] public string OfficeCountry { get; init; } = string.Empty;
     [Required, EmailAddress] public string Email { get; init; } = string.Empty;
@@ -117,7 +125,7 @@ public sealed record VisitorRequestDetailDto(
 );
 
 public sealed record VisitorFormSummaryDto(Guid Id, string Status, string FullName);
-public sealed record VisitorDto(Guid Id, string FullName, string CompanyName, string Citizenship, string Country, string Designation, string Email, string Phone, string IdType, string OtherIdType, string VisitorType);
+public sealed record VisitorDto(Guid Id, string FullName, string CompanyName, string VisitingCompanyAddress, string VisitingCompanyCountry, bool IsFaculty, bool IsGtre, string? EcIdType, string Citizenship, string Country, string Designation, string Email, string Phone, string IdType, string OtherIdType, string VisitorType);
 public sealed record VisitDayDto(Guid Id, DateOnly VisitDate, TimeOnly? ExpectedArrivalTime, TimeOnly? ExpectedDepartureTime, string Status, DateTimeOffset? ActualArrivalTime, DateTimeOffset? ActualDepartureTime);
 public sealed record AssetDto(Guid Id, string AssetType, string Description, string SerialNumber, bool IsDeclared, bool IsVerified, string VerificationStatus);
 public sealed record AuditDto(Guid Id, string Action, string EntityType, Guid EntityId, string Details, DateTimeOffset CreatedAt);

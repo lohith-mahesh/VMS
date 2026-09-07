@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using RRVMS.Api.DTOs;
 using RRVMS.Api.Services;
 
@@ -107,7 +108,8 @@ public sealed class VisitorRequestsController(IVisitorRequestService service, IC
             var workflowAction = new WorkflowActionDto
             {
                 Action = "ec-approve",
-                Comment = input?.Comment
+                Comment = input?.Comment,
+                EcIdType = input?.EcIdType
             };
             var result = await service.ExecuteActionAsync(id, workflowAction, currentUserService.UserId, currentUserService.Role, cancellationToken);
             return Ok(result);
@@ -116,6 +118,7 @@ public sealed class VisitorRequestsController(IVisitorRequestService service, IC
         catch (UnauthorizedAccessException exception) { return StatusCode(StatusCodes.Status403Forbidden, new { error = exception.Message }); }
         catch (ArgumentException exception) { return BadRequest(new { error = exception.Message }); }
         catch (InvalidOperationException exception) { return Conflict(new { error = exception.Message }); }
+        catch (DbUpdateException) { return StatusCode(StatusCodes.Status503ServiceUnavailable, new { error = "The database schema is not ready for EC approval. Run the latest migrations and retry." }); }
     }
 
     [HttpPost("{id:guid}/ec/reject")]
@@ -150,4 +153,5 @@ public sealed class EcDecisionInput
 {
     public string? Comment { get; set; }
     public string? Reason { get; set; }
+    public string? EcIdType { get; set; }
 }

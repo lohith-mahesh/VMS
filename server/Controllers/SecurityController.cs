@@ -38,6 +38,7 @@ public sealed class ReceptionController(RrvmsDbContext dbContext, ICurrentUserSe
             visitorName = day.VisitorRequest.Visitor.FullName,
             company = day.VisitorRequest.Visitor.CompanyName,
             idType = day.VisitorRequest.Visitor.IdType,
+            ecIdType = day.VisitorRequest.Visitor.EcIdType,
             assets = day.VisitorRequest.Assets.Select(a => new { a.Id, a.AssetType, a.Description, a.SerialNumber, verificationStatus = a.VerificationStatus.ToString() }).ToList()
         }).ToListAsync(cancellationToken);
 
@@ -76,6 +77,7 @@ public sealed class ReceptionController(RrvmsDbContext dbContext, ICurrentUserSe
             visitorName = day.VisitorRequest.Visitor.FullName,
             company = day.VisitorRequest.Visitor.CompanyName,
             idType = day.VisitorRequest.Visitor.IdType,
+            ecIdType = day.VisitorRequest.Visitor.EcIdType,
             assets = day.VisitorRequest.Assets.Select(a => new { a.Id, a.AssetType, a.Description, a.SerialNumber, verificationStatus = a.VerificationStatus.ToString() }).ToList()
         }).ToListAsync(cancellationToken);
 

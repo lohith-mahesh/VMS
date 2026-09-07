@@ -10,6 +10,7 @@ public sealed class WorkflowActionDto
     public Guid? VisitDayId { get; init; }
     public string? BadgeNumber { get; init; }
     public string? BadgeColor { get; init; }
+    public string? EcIdType { get; init; }
     public string? IdType { get; init; }
     public string? OtherIdType { get; init; }
     public string? AssetSerials { get; init; }

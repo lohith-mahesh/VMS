@@ -569,6 +569,17 @@ namespace RRVMS.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("EcIdType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("VisitingCompanyAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VisitingCompanyCountry")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("text");
@@ -591,6 +602,12 @@ namespace RRVMS.Api.Migrations
                     b.Property<string>("IdType")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsFaculty")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsGtre")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Phone")
                         .IsRequired()
@@ -629,6 +646,12 @@ namespace RRVMS.Api.Migrations
                     b.Property<string>("CompanyName")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsFaculty")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsGtre")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Country")
                         .IsRequired()
@@ -677,6 +700,14 @@ namespace RRVMS.Api.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Telephone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VisitingCompanyAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VisitingCompanyCountry")
                         .IsRequired()
                         .HasColumnType("text");
 
