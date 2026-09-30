@@ -21,6 +21,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     coverage: {
+      provider: 'v8',
       reporter: ['text', 'html'],
       thresholds: {
         lines: 80,
