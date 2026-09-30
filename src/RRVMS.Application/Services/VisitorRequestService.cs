@@ -350,7 +350,7 @@ public sealed class VisitorRequestService(
         {
             var now = clock.UtcNow;
             await repository.AddDocumentAccessAsync(new DocumentAccessEvent(document.Id, request.Id, visitor.Id, actor.ObjectId, "Download", actor.CorrelationId, now), cancellationToken);
-            request.RecordAudit("DpsDownloaded", actor.ObjectId, actor.Role.ToString(), null, new { document.Id, document.FileName, visitor.Id }, $"DPS version {document.Version} downloaded.", actor.CorrelationId, now);
+            request.RecordAudit("DpsDownloaded", actor.ObjectId, actor.Role.ToString(), null, new { DocumentId = document.Id, document.FileName, VisitorId = visitor.Id }, $"DPS version {document.Version} downloaded.", actor.CorrelationId, now);
             await repository.SaveChangesAsync(cancellationToken);
             return download;
         }

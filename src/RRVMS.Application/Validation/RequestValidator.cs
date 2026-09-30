@@ -1,6 +1,6 @@
 using RRVMS.Application.Common;
 using RRVMS.Application.Contracts;
-using System.ComponentModel.DataAnnotations;
+using EmailAddressAttribute = System.ComponentModel.DataAnnotations.EmailAddressAttribute;
 
 namespace RRVMS.Application.Validation;
 
