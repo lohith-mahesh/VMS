@@ -9,8 +9,14 @@ using RRVMS.Infrastructure.Persistence;
 
 namespace RRVMS.Infrastructure.Background;
 
-public sealed class OutboxWorker(IServiceScopeFactory scopeFactory, ILogger<OutboxWorker> logger) : BackgroundService
+public sealed partial class OutboxWorker(IServiceScopeFactory scopeFactory, ILogger<OutboxWorker> logger) : BackgroundService
 {
+    [LoggerMessage(2001, LogLevel.Warning, "Notification {MessageId} failed.")]
+    private static partial void LogNotificationFailure(ILogger logger, Guid messageId, Exception exception);
+
+    [LoggerMessage(2002, LogLevel.Error, "The outbox worker failed.")]
+    private static partial void LogWorkerFailure(ILogger logger, Exception exception);
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
@@ -57,7 +63,7 @@ public sealed class OutboxWorker(IServiceScopeFactory scopeFactory, ILogger<Outb
                 catch (Exception exception)
                 {
                     message.MarkFailed(exception.Message[..Math.Min(exception.Message.Length, 4000)]);
-                    logger.LogWarning(exception, "Notification {MessageId} failed.", message.Id);
+                    LogNotificationFailure(logger, message.Id, exception);
                 }
             }
 
@@ -68,7 +74,7 @@ public sealed class OutboxWorker(IServiceScopeFactory scopeFactory, ILogger<Outb
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "The outbox worker failed.");
+            LogWorkerFailure(logger, exception);
         }
     }
 }

@@ -7,8 +7,11 @@ using RRVMS.Infrastructure.Persistence;
 
 namespace RRVMS.Infrastructure.Background;
 
-public sealed class RetentionWorker(IServiceScopeFactory scopeFactory, ILogger<RetentionWorker> logger) : BackgroundService
+public sealed partial class RetentionWorker(IServiceScopeFactory scopeFactory, ILogger<RetentionWorker> logger) : BackgroundService
 {
+    [LoggerMessage(1001, LogLevel.Error, "The retention worker failed.")]
+    private static partial void LogWorkerFailure(ILogger logger, Exception exception);
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await ProcessAsync(stoppingToken);
@@ -53,7 +56,7 @@ public sealed class RetentionWorker(IServiceScopeFactory scopeFactory, ILogger<R
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "The retention worker failed.");
+            LogWorkerFailure(logger, exception);
         }
     }
 }
