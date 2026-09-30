@@ -17,7 +17,7 @@ public sealed class HealthAndIdentityTests : IClassFixture<WebApplicationFactory
     [Fact]
     public async Task LivenessEndpointIsAnonymous()
     {
-        var response = await _client.GetAsync("/health/live");
+        var response = await _client.GetAsync("/health/live", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
@@ -27,8 +27,8 @@ public sealed class HealthAndIdentityTests : IClassFixture<WebApplicationFactory
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, "/api/me");
         request.Headers.Add("X-Dev-Role", "ExportControl");
-        var response = await _client.SendAsync(request);
-        using var me = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        var response = await _client.SendAsync(request, TestContext.Current.CancellationToken);
+        using var me = JsonDocument.Parse(await response.Content.ReadAsStreamAsync(TestContext.Current.CancellationToken));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("ExportControl", me.RootElement.GetProperty("role").GetString());
