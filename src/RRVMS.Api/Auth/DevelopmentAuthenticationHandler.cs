@@ -11,7 +11,7 @@ public sealed class DevelopmentAuthenticationHandler(
     ILoggerFactory logger,
     UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public const string Scheme = "Development";
+    public const string SchemeName = "Development";
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -32,7 +32,7 @@ public sealed class DevelopmentAuthenticationHandler(
             new Claim(ClaimTypes.Name, displayName),
             new Claim(ClaimTypes.Role, role.ToString())
         };
-        var identity = new ClaimsIdentity(claims, Scheme);
-        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme)));
+        var identity = new ClaimsIdentity(claims, SchemeName);
+        return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName)));
     }
 }

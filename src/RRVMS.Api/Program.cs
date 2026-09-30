@@ -34,8 +34,8 @@ builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 
 
 if (isDevelopment && string.Equals(builder.Configuration["Authentication:Mode"], "Development", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddAuthentication(DevelopmentAuthenticationHandler.Scheme)
-        .AddScheme<AuthenticationSchemeOptions, DevelopmentAuthenticationHandler>(DevelopmentAuthenticationHandler.Scheme, _ => { });
+    builder.Services.AddAuthentication(DevelopmentAuthenticationHandler.SchemeName)
+        .AddScheme<AuthenticationSchemeOptions, DevelopmentAuthenticationHandler>(DevelopmentAuthenticationHandler.SchemeName, _ => { });
 }
 else
 {

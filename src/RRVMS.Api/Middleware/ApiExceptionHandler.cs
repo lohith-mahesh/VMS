@@ -5,9 +5,15 @@ using RRVMS.Domain.Common;
 
 namespace RRVMS.Api.Middleware;
 
-public sealed class ApiExceptionHandler(IProblemDetailsService problemDetails, ILogger<ApiExceptionHandler> logger) : IExceptionHandler
+public sealed partial class ApiExceptionHandler(IProblemDetailsService problemDetails, ILogger<ApiExceptionHandler> logger) : IExceptionHandler
 {
-    public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
+    [LoggerMessage(3001, LogLevel.Error, "Unhandled request failure for {TraceIdentifier}.")]
+    private static partial void LogUnhandledFailure(ILogger logger, string traceIdentifier, Exception exception);
+
+    [LoggerMessage(3002, LogLevel.Information, "Request rejected with status {StatusCode} for {TraceIdentifier}.")]
+    private static partial void LogRejectedRequest(ILogger logger, int statusCode, string traceIdentifier, Exception exception);
+
+    public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var status = exception switch
         {
@@ -20,22 +26,22 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problemDetails, I
         };
         if (status == StatusCodes.Status500InternalServerError)
         {
-            logger.LogError(exception, "Unhandled request failure for {TraceIdentifier}.", context.TraceIdentifier);
+            LogUnhandledFailure(logger, httpContext.TraceIdentifier, exception);
         }
         else
         {
-            logger.LogInformation(exception, "Request rejected with status {StatusCode} for {TraceIdentifier}.", status, context.TraceIdentifier);
+            LogRejectedRequest(logger, status, httpContext.TraceIdentifier, exception);
         }
 
-        context.Response.StatusCode = status;
+        httpContext.Response.StatusCode = status;
         var problem = new ProblemDetails
         {
             Status = status,
             Title = status == StatusCodes.Status500InternalServerError ? "An unexpected error occurred." : exception.Message,
             Type = $"https://httpstatuses.io/{status}",
-            Instance = context.Request.Path
+            Instance = httpContext.Request.Path
         };
-        problem.Extensions["traceId"] = context.TraceIdentifier;
+        problem.Extensions["traceId"] = httpContext.TraceIdentifier;
         if (exception is ValidationException validation)
         {
             problem.Extensions["errors"] = validation.Errors;
@@ -43,7 +49,7 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problemDetails, I
 
         return await problemDetails.TryWriteAsync(new ProblemDetailsContext
         {
-            HttpContext = context,
+            HttpContext = httpContext,
             ProblemDetails = problem
         });
     }
