@@ -1,0 +1,2386 @@
+[
+  {
+    "name": "Afghanistan",
+    "dial": "93",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Albania",
+    "dial": "355",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Algeria",
+    "dial": "213",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Andorra",
+    "dial": "376",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Angola",
+    "dial": "244",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Antigua and Barbuda",
+    "dial": "1268",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Argentina",
+    "dial": "54",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Armenia",
+    "dial": "374",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Australia",
+    "dial": "61",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Austria",
+    "dial": "43",
+    "lengths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Azerbaijan",
+    "dial": "994",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Bahamas",
+    "dial": "1242",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Bahrain",
+    "dial": "973",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Bangladesh",
+    "dial": "880",
+    "lengths": [
+      10
+    ]
+  },
+  {
+    "name": "Barbados",
+    "dial": "1246",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Belarus",
+    "dial": "375",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Belgium",
+    "dial": "32",
+    "lengths": [
+      8,
+      9
+    ]
+  },
+  {
+    "name": "Belize",
+    "dial": "501",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Benin",
+    "dial": "229",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Bhutan",
+    "dial": "975",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Bolivia",
+    "dial": "591",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Bosnia and Herzegovina",
+    "dial": "387",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Botswana",
+    "dial": "267",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Brazil",
+    "dial": "55",
+    "lengths": [
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Brunei",
+    "dial": "673",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Bulgaria",
+    "dial": "359",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Burkina Faso",
+    "dial": "226",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Burundi",
+    "dial": "257",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Cabo Verde",
+    "dial": "238",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Cambodia",
+    "dial": "855",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Cameroon",
+    "dial": "237",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Canada",
+    "dial": "1",
+    "lengths": [
+      10
+    ]
+  },
+  {
+    "name": "Central African Republic",
+    "dial": "236",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Chad",
+    "dial": "235",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Chile",
+    "dial": "56",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "China",
+    "dial": "86",
+    "lengths": [
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Colombia",
+    "dial": "57",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Comoros",
+    "dial": "269",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Congo, Democratic Republic of the",
+    "dial": "243",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Congo, Republic of the",
+    "dial": "242",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Costa Rica",
+    "dial": "506",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Côte d'Ivoire",
+    "dial": "225",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Croatia",
+    "dial": "385",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Cuba",
+    "dial": "53",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Cyprus",
+    "dial": "357",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Czechia",
+    "dial": "420",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Denmark",
+    "dial": "45",
+    "lengths": [
+      8
+    ]
+  },
+  {
+    "name": "Djibouti",
+    "dial": "253",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Dominica",
+    "dial": "1767",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Dominican Republic",
+    "dial": "1809",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Ecuador",
+    "dial": "593",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Egypt",
+    "dial": "20",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "El Salvador",
+    "dial": "503",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Equatorial Guinea",
+    "dial": "240",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Eritrea",
+    "dial": "291",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Estonia",
+    "dial": "372",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Eswatini",
+    "dial": "268",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Ethiopia",
+    "dial": "251",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Fiji",
+    "dial": "679",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Finland",
+    "dial": "358",
+    "lengths": [
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "France",
+    "dial": "33",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Gabon",
+    "dial": "241",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Gambia",
+    "dial": "220",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Georgia",
+    "dial": "995",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Germany",
+    "dial": "49",
+    "lengths": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Ghana",
+    "dial": "233",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Greece",
+    "dial": "30",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Grenada",
+    "dial": "1473",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Guatemala",
+    "dial": "502",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Guinea",
+    "dial": "224",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Guinea-Bissau",
+    "dial": "245",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Guyana",
+    "dial": "592",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Haiti",
+    "dial": "509",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Honduras",
+    "dial": "504",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Hungary",
+    "dial": "36",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Iceland",
+    "dial": "354",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "India",
+    "dial": "91",
+    "lengths": [
+      10
+    ]
+  },
+  {
+    "name": "Indonesia",
+    "dial": "62",
+    "lengths": [
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Iran",
+    "dial": "98",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Iraq",
+    "dial": "964",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Ireland",
+    "dial": "353",
+    "lengths": [
+      7,
+      8,
+      9
+    ]
+  },
+  {
+    "name": "Israel",
+    "dial": "972",
+    "lengths": [
+      8,
+      9
+    ]
+  },
+  {
+    "name": "Italy",
+    "dial": "39",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Jamaica",
+    "dial": "1876",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Japan",
+    "dial": "81",
+    "lengths": [
+      9,
+      10
+    ]
+  },
+  {
+    "name": "Jordan",
+    "dial": "962",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Kazakhstan",
+    "dial": "7",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  {
+    "name": "Kenya",
+    "dial": "254",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Kiribati",
+    "dial": "686",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Korea, North",
+    "dial": "850",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Korea, South",
+    "dial": "82",
+    "lengths": [
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "name": "Kosovo",
+    "dial": "383",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Kuwait",
+    "dial": "965",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Kyrgyzstan",
+    "dial": "996",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Laos",
+    "dial": "856",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Latvia",
+    "dial": "371",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Lebanon",
+    "dial": "961",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Lesotho",
+    "dial": "266",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Liberia",
+    "dial": "231",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Libya",
+    "dial": "218",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Liechtenstein",
+    "dial": "423",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Lithuania",
+    "dial": "370",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Luxembourg",
+    "dial": "352",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Madagascar",
+    "dial": "261",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Malawi",
+    "dial": "265",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Malaysia",
+    "dial": "60",
+    "lengths": [
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "name": "Maldives",
+    "dial": "960",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Mali",
+    "dial": "223",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Malta",
+    "dial": "356",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Marshall Islands",
+    "dial": "692",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Mauritania",
+    "dial": "222",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Mauritius",
+    "dial": "230",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Mexico",
+    "dial": "52",
+    "lengths": [
+      10
+    ]
+  },
+  {
+    "name": "Micronesia",
+    "dial": "691",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Moldova",
+    "dial": "373",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Monaco",
+    "dial": "377",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Mongolia",
+    "dial": "976",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Montenegro",
+    "dial": "382",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Morocco",
+    "dial": "212",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Mozambique",
+    "dial": "258",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Myanmar",
+    "dial": "95",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Namibia",
+    "dial": "264",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Nauru",
+    "dial": "674",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Nepal",
+    "dial": "977",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Netherlands",
+    "dial": "31",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "New Zealand",
+    "dial": "64",
+    "lengths": [
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "name": "Nicaragua",
+    "dial": "505",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Niger",
+    "dial": "227",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Nigeria",
+    "dial": "234",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "North Macedonia",
+    "dial": "389",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Norway",
+    "dial": "47",
+    "lengths": [
+      8
+    ]
+  },
+  {
+    "name": "Oman",
+    "dial": "968",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Pakistan",
+    "dial": "92",
+    "lengths": [
+      10
+    ]
+  },
+  {
+    "name": "Palau",
+    "dial": "680",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Palestine",
+    "dial": "970",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Panama",
+    "dial": "507",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Papua New Guinea",
+    "dial": "675",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Paraguay",
+    "dial": "595",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Peru",
+    "dial": "51",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Philippines",
+    "dial": "63",
+    "lengths": [
+      10
+    ]
+  },
+  {
+    "name": "Poland",
+    "dial": "48",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Portugal",
+    "dial": "351",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Qatar",
+    "dial": "974",
+    "lengths": [
+      8
+    ]
+  },
+  {
+    "name": "Romania",
+    "dial": "40",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Russia",
+    "dial": "7",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ]
+  },
+  {
+    "name": "Rwanda",
+    "dial": "250",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Saint Kitts and Nevis",
+    "dial": "1869",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Saint Lucia",
+    "dial": "1758",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Saint Vincent and the Grenadines",
+    "dial": "1784",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Samoa",
+    "dial": "685",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "San Marino",
+    "dial": "378",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "São Tomé and Príncipe",
+    "dial": "239",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Saudi Arabia",
+    "dial": "966",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Senegal",
+    "dial": "221",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Serbia",
+    "dial": "381",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Seychelles",
+    "dial": "248",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Sierra Leone",
+    "dial": "232",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Singapore",
+    "dial": "65",
+    "lengths": [
+      8
+    ]
+  },
+  {
+    "name": "Slovakia",
+    "dial": "421",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Slovenia",
+    "dial": "386",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Solomon Islands",
+    "dial": "677",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Somalia",
+    "dial": "252",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "South Africa",
+    "dial": "27",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "South Sudan",
+    "dial": "211",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Spain",
+    "dial": "34",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Sri Lanka",
+    "dial": "94",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Sudan",
+    "dial": "249",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Suriname",
+    "dial": "597",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Sweden",
+    "dial": "46",
+    "lengths": [
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "name": "Switzerland",
+    "dial": "41",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Syria",
+    "dial": "963",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Taiwan",
+    "dial": "886",
+    "lengths": [
+      9
+    ]
+  },
+  {
+    "name": "Tajikistan",
+    "dial": "992",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Tanzania",
+    "dial": "255",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Thailand",
+    "dial": "66",
+    "lengths": [
+      8,
+      9
+    ]
+  },
+  {
+    "name": "Timor-Leste",
+    "dial": "670",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Togo",
+    "dial": "228",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Tonga",
+    "dial": "676",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Trinidad and Tobago",
+    "dial": "1868",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ]
+  },
+  {
+    "name": "Tunisia",
+    "dial": "216",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Türkiye",
+    "dial": "90",
+    "lengths": [
+      10
+    ]
+  },
+  {
+    "name": "Turkmenistan",
+    "dial": "993",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Tuvalu",
+    "dial": "688",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Uganda",
+    "dial": "256",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Ukraine",
+    "dial": "380",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "United Arab Emirates",
+    "dial": "971",
+    "lengths": [
+      8,
+      9
+    ]
+  },
+  {
+    "name": "United Kingdom",
+    "dial": "44",
+    "lengths": [
+      7,
+      8,
+      9,
+      10
+    ]
+  },
+  {
+    "name": "United States",
+    "dial": "1",
+    "lengths": [
+      10
+    ]
+  },
+  {
+    "name": "Uruguay",
+    "dial": "598",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Uzbekistan",
+    "dial": "998",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Vanuatu",
+    "dial": "678",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Vatican City",
+    "dial": "39",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Venezuela",
+    "dial": "58",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Vietnam",
+    "dial": "84",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  {
+    "name": "Yemen",
+    "dial": "967",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Zambia",
+    "dial": "260",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "name": "Zimbabwe",
+    "dial": "263",
+    "lengths": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ]
+  }
+]

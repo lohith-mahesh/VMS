@@ -1,0 +1,29 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "*.css",
+      "*.js",
+      "*.map",
+      "*.ico",
+      "*.png",
+      "*.svg"
+    ]
+  },
+  "globalHeaders": {
+    "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://login.microsoftonline.com https://*.microsoftonline.com https://*.azurewebsites.net; frame-src https://login.microsoftonline.com https://*.microsoftonline.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    "permissions-policy": "camera=(), microphone=(), geolocation=()",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY"
+  },
+  "mimeTypes": {
+    ".json": "application/json"
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  }
+}

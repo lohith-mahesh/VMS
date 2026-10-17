@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\RRVMS.Domain\RRVMS.Domain.csproj" />
+    <PackageReference Include="ClosedXML" />
+  </ItemGroup>
+</Project>
